@@ -1,0 +1,1 @@
+c:\opt\AutoHotKey-v2\Compiler\Ahk2Exe.exe /in src\pam-rdp-config.ahk /out x64\Release\pam-rdp-config.exe /icon resource\pam-rdp-config.ico /base C:\opt\AutoHotKey-v2\v2\AutoHotkey64.exe /compress 2

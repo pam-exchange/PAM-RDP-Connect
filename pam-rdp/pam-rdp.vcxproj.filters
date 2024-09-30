@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{5dca0481-d7ec-4465-bd7e-6e2ad72d4835}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config Files">
+      <UniqueIdentifier>{39ec5d2f-ca01-4821-bdd0-ae4ffa7a3b75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{03baabd9-dfb5-4f9d-9ac2-cffdb9e60f47}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\pam-rdp_Statens-IT.properties">
+      <Filter>Config Files</Filter>
+    </None>
+    <None Include="config\pam-rdp.system.properties">
+      <Filter>Config Files</Filter>
+    </None>
+    <None Include="config\pam-rdp.user.properties">
+      <Filter>Config Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\pam-rdp.ahk">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resource\pam-rdp.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
