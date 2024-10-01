@@ -1,3 +1,0 @@
-﻿LINK : warning LNK4076: invalid incremental status file 'Z:\workspace\PAM-Connect\2.8.0\x64\Release\getopt.ilk' (which will be deleted); linking nonincrementally
-     Creating library Z:\workspace\PAM-Connect\2.8.0\x64\Release\getopt.lib and object Z:\workspace\PAM-Connect\2.8.0\x64\Release\getopt.exp
-  getopt.vcxproj -> Z:\workspace\PAM-Connect\2.8.0\x64\Release\getopt.dll
