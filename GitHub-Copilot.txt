@@ -1,0 +1,33 @@
+python script as windows service reading commands (add or remove) from named pipe and writing OK or ERROR with message to same named pipe.
+pipe name is PAM-RDP-SERVICE
+Service name is PAM-RDP-SERVICE
+Encoding from and to named pipe is ascii. 
+
+Commands can be adding an entry to hosts file or deleting an entry from hosts file based on ip address and hostname. 
+Use a semaphore to verify that any command is finished before accepting next command.
+
+Verify that commands read on named pipe originate from localhost and from filename read from property file.
+All path and filenames can be in 8.3 format.
+Property filename is pam-rdp-service.properties.
+Property file is stored together with script
+All progress in script is logged to logfile. 
+Log filename is read from property 
+Log level is read from property
+Log format is read from property
+Default Log file is c:\Windows\Temp\pam-rdp-service.log
+
+Create backup of hosts file when service is starting. 
+Restore from backup when service is stopping. 
+hosts file can be ascii, utf-8 or utf-16 encoding. 
+
+Before adding an entry add the hostname to hklm\Software\Microsoft\Terminal Server Client\LocalDevices. 
+After removing an entry remove the hostname from same registry.
+
+The python executable must accept command line parameters to install, uninstall, query, stop and start
+default command line parameter is --start
+Command line parameters can be short using 1 hyphen or long using 1 hyphen
+Add a command line parameter to show a license text
+
+Show code to compile to executable with all required modules included
+Show sample program calling the named pipe
+Show sample properties file

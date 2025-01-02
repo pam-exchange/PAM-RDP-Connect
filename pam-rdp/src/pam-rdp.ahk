@@ -30,6 +30,7 @@ global PAM_TYPE_BEYONDTRUST:= "BeyondTrustPasswordSafe"
 global PAM_TYPE_SYMANTEC:= "SymantecPAM"
 global PAM_TYPE_SYMANTEC2:= "SymantecPAMGateway"
 global PAM_TYPE_SENHASEGURA:= "Senhasegura"
+global PAM_TYPE_CYBERARK:= "CyberArk"
 
 global PROPERTY_TYPE_SYSTEM:= 1
 global PROPERTY_TYPE_USER:= 2
@@ -111,6 +112,12 @@ if (!FileExist(userPropertyFilename)) {
 gSettings:= ReadProperties(userPropertyFilename,PROPERTY_TYPE_USER, gSettings)
 global gLockTimeout:= 1000*(1+gSettings.ConnectTimeout)	; Must recalculate as settings.ConnectTimout may have been changed from properties
 
+; Filename from command line
+global gFilenameFull:= ""
+global gFilenamePath:= ""
+global gFilenameBase:= ""
+global gFilenameExt:= ""
+
 ;------------------------
 ; Heartbeat program (after ReadProperties)
 if (gSettings.Heartbeat) {
@@ -146,22 +153,28 @@ if (A_Args.Length = 1)
 	logDebug(A_LineNumber, "main: regular - args[1]= '" filename "'")
 
 	if (RegExMatch(filename, "i)\.rdp$")>0) {
-		if (InStr(filename,"~")) {
+	
+		gFilenameFull:= filename
+		if (InStr(gFilenameFull,"~")) {
 			; 8.3 short name in rdpFilename
-			filename:= GetLongPathName(filename)
-			logDebug(A_LineNumber, "main: regular - Long filename= '" filename "'")
+			gFilenameFull:= GetLongPathName(gFilenameFull)
+			logDebug(A_LineNumber, "main: regular - Long gFilenameFull= '" gFilenameFull "'")
 		}
-		SplitPath(filename, , &dir, &ext, &name)
-		if (gSettings.PamType=PAM_TYPE_BEYONDTRUST && RegExMatch(name, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")>0) {
+		SplitPath(gFilenameFull, , &gFilenamePath, &gFilenameExt, &gFilenameBase)
+		
+		if (gSettings.PamType=PAM_TYPE_BEYONDTRUST && RegExMatch(gFilenameBase, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")>0) {
 			logDebug(A_LineNumber, "main: regular - Beyondtrust .rdp filename, continue")
 		}
-		else if (gSettings.PamType = PAM_TYPE_SYMANTEC && RegExMatch(name, "i)_PAMGateway")>0) {
+		else if (gSettings.PamType = PAM_TYPE_SYMANTEC && RegExMatch(gFilenameBase, "i)_PAMGateway")>0) {
 			gSettings.PamType:= PAM_TYPE_SYMANTEC2
 			logDebug(A_LineNumber, "main: regular - Symantec PAMGateway filename, continue")
 		}
+		else if (gSettings.PamType = PAM_TYPE_CYBERARK && RegExMatch(gFilenameBase, "i)PSM Address\.[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")>0) {
+			logDebug(A_LineNumber, "main: regular - CyberArk .rdp filename, continue")
+		}
 		else {
-			logDebug(A_LineNumber, "main: call Regular using filename= '" filename "'")
-			rc:= Regular(filename)
+			logDebug(A_LineNumber, "main: call Regular using gFilenameFull= '" gFilenameFull "'")
+			rc:= Regular(gFilenameFull)
 			
 			logDebug(A_LineNumber, "main: regular - finished, rc= " rc)
 			EndScript()
@@ -174,56 +187,14 @@ if (A_Args.Length = 1)
 
 ;------------------------
 if (gSettings.PamType = PAM_TYPE_BEYONDTRUST) {
-	invalidArgs:= false
-	if (A_Args.Length = 1) {
-		filename:= A_Args[1]
-		logDebug(A_LineNumber, "main: BeyondTrust - filename= '" filename "'")
-
-		; ------------------------------------
-		; Verify filename is "beyondtrust" 
-		;
-		if (InStr(filename,"~")) {
-			; 8.3 short name in rdpFilename
-			filename:= GetLongPathName(filename)
-			logDebug(A_LineNumber, "main: BeyondTrust - Long filename= '" filename "'")
-		}
-		
-		SplitPath(filename, , &dir, &ext, &name)
-		if (RegExMatch(name, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
-			invalidArgs:= true
-		}
-	}
-	else {
-		invalidArgs:= true
-	} 
-
-	if (invalidArgs) {
+	if (A_Args.Length <> 1 || RegExMatch(gFilenameBase, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
 		; parameter not recognized nor accepted
 		MsgBox("This program requires 1 parameter`n`npam-rdp c:\.....\SQL2-d6c2efa4-f38a-4b65-9438-0e07900899ef.rdp", gProgramTitle, "IconX T" gSettings.PromptTimeout)
 		EndScript()
 	}
 
-	logDebug(A_LineNumber, "main: call BeyondTrust using filename= '" filename "'")
-	rc:= BeyondTrust(filename)
-	
-	if (gSettings.Cleanup) {
-		logDebug(A_LineNumber, "main: BeyondTrust - Deleting '" filename "'")
-		try {
-			if (FileExist(filename)) 
-				FileDelete(filename)
-			logInfo(A_LineNumber, "main: BeyondTrust - Deleted file '" filename "'")
-		} 
-		catch as e
-		{
-			ErrorMessage:= "Cannot delete file '" filename "'"
-			logError(A_LineNumber, "main: BeyondTrust - " ErrorMessage)
-			logDebug(A_LineNumber, "main: BeyondTrust - " e.Message)
-		}
-	} 
-	else {
-		logDebug(A_LineNumber, "main: BeyondTrust - No cleanup done '" filename "'")
-	}
-
+	logDebug(A_LineNumber, "main: call BeyondTrust using filename= '" gFilenameFull "'")
+	rc:= BeyondTrust(gFilenameFull)
 	if (rc < 0) {
 		logError(A_LineNumber, "main: BeyondTrust - ErrorMessage= '" ErrorMessage "'")
 		MsgBox(ErrorMessage, gProgramTitle, "IconX T" gSettings.PromptTimeout)
@@ -231,7 +202,6 @@ if (gSettings.PamType = PAM_TYPE_BEYONDTRUST) {
 	}
 	
 	logDebug(A_LineNumber, "main: BeyondTrust - finished, rc= " rc)
-	EndScript()
 }
 
 ;------------------------
@@ -260,11 +230,7 @@ if (gSettings.PamType = PAM_TYPE_SYMANTEC) {
 		}
 		deviceName:= Trim(deviceName)
 		deviceName:= StrReplace(deviceName," ","_")
-		
-		logDebug(A_LineNumber, "main: Call Symantec using ip= '" ip "', port= '" port "', name= '" deviceName "'")
-		rc:= Symantec1(ip,port,deviceName)
 	}
-	
 	else {
 		invalidArgs:= true
 	}
@@ -275,80 +241,36 @@ if (gSettings.PamType = PAM_TYPE_SYMANTEC) {
 		EndScript()
 	}
 	
+	logDebug(A_LineNumber, "main: Call Symantec using ip= '" ip "', port= '" port "', name= '" deviceName "'")
+	rc:= Symantec1(ip,port,deviceName)
 	if (rc < 0) {
 		logError(A_LineNumber, "main: Symantec - ErrorMessage= '" ErrorMessage "'")
 		MsgBox(ErrorMessage, gProgramTitle, "IconX T" gSettings.PromptTimeout)
 	}
 	
 	logDebug(A_LineNumber, "main: Symantec - finished, rc= " rc)
-	EndScript()
+	
+	; no cleanup here
+	gSettings.Cleanup= false
 }
 
 ;------------------------
 if (gSettings.PamType = PAM_TYPE_SYMANTEC2) {
 
-	invalidArgs:= false
-	if (A_Args.Length == 1) {
-		;
-		; symantec2 is used
-		;
-		; assume it is a PAMGateway filename
-
-		filename:= A_Args[1]
-		logDebug(A_LineNumber, "main: Symantec2 - filename= '" filename "'")
-
-		; ------------------------------------
-		; Verify filename is "Symantec2" 
-		;
-		if (InStr(filename,"~")) {
-			; 8.3 short name in rdpFilename
-			filename:= GetLongPathName(filename)
-			logDebug(A_LineNumber, "main: Symantec2 - Long filename= '" filename "'")
-		}
-		
-		SplitPath(filename, , &dir, &ext, &name)
-		if (RegExMatch(name, "i)(.*_)?(.*)_PAMGateway") <= 0) {
-			invalidArgs:= true
-		}
-	}
-	else {
-		invalidArgs:= true
-	}
-	
-	if (invalidArgs) {
+	if (A_Args.Length <> 1 || RegExMatch(gFilenameBase, "i)(.*_)?(.*)_PAMGateway") <= 0) {
 		; parameter not recognized nor accepted
 		MsgBox("This program requires 1 or 3 parameters`n`n1: pam-rdp <filename.rdp`n`n3: pam-rdp <Local IP> <First Port> <Device Name>", gProgramTitle, "IconX T" gSettings.PromptTimeout)
 		EndScript()
 	}
 		
-	logDebug(A_LineNumber, "main: Call Symantec2 using filename= '" filename)
-	rc:= Symantec2(filename)
-
-	if (gSettings.Cleanup) {
-		logDebug(A_LineNumber, "main: Symantec2 - Deleting '" filename "'")
-		try {
-			if (FileExist(filename)) 
-				FileDelete(filename)
-			logInfo(A_LineNumber, "main: Symantec2 - Deleted file '" filename "'")
-		} 
-		catch as e
-		{
-			ErrorMessage:= "Cannot delete file '" filename "'"
-			logError(A_LineNumber, "main: Symantec2 - " ErrorMessage)
-			logDebug(A_LineNumber, "main: Symantec2 - " e.Message)
-		}
-	} 
-	else {
-		logDebug(A_LineNumber, "main: Symantec2 - No cleanup done '" filename "'")
-	}
-
+	logDebug(A_LineNumber, "main: Call Symantec2 using filename= '" gFilenameFull)
+	rc:= Symantec2(gFilenameFull)
 	if (rc < 0) {
 		logError(A_LineNumber, "main: Symantec2 - ErrorMessage= '" ErrorMessage "'")
 		MsgBox(ErrorMessage, gProgramTitle, "IconX T" gSettings.PromptTimeout)
 	}
 	
 	logDebug(A_LineNumber, "main: Symantec2 - finished, rc= " rc)
-	EndScript()
 }
 
 ;------------------------
@@ -386,9 +308,6 @@ if (gSettings.PamType = PAM_TYPE_SENHASEGURA) {
 		if (localUsername != "" && remoteUsername != "" && deviceName!="") {
 			deviceName:= Trim(deviceName)
 			deviceName:= StrReplace(deviceName," ","_")
-			
-			logDebug(A_LineNumber, "main: Call Senhasegura using localUsername= '" localUsername "', remoteUsername= '" remoteUsername "', name= '" deviceName "', port= " gSettings.port)
-			rc:= Senhasegura(localUsername,remoteUsername,gSettings.port,deviceName)
 		}
 		else {
 			invalidArgs:= true
@@ -403,18 +322,53 @@ if (gSettings.PamType = PAM_TYPE_SENHASEGURA) {
 		EndScript()
 	}
 	
+	logDebug(A_LineNumber, "main: Call Senhasegura using localUsername= '" localUsername "', remoteUsername= '" remoteUsername "', name= '" deviceName "', port= " gSettings.port)
+	rc:= Senhasegura(localUsername,remoteUsername,gSettings.port,deviceName)
 	if (rc < 0) {
 		logError(A_LineNumber, "main: Senhasegura - ErrorMessage= '" ErrorMessage "'")
 		MsgBox(ErrorMessage, gProgramTitle, "IconX T" gSettings.PromptTimeout)
 	}
 	
 	logDebug(A_LineNumber, "main: Senhasegura - finished, rc= " rc)
-	EndScript()
+	
+	; no cleanup here
+	gSettings.Cleanup= false
+}
+
+;------------------------
+if (gSettings.PamType = PAM_TYPE_CYBERARK) {
+	if (A_Args.Length <> 1 || RegExMatch(name, "i)(.*?), PSM Address\.[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
+		; parameter not recognized nor accepted
+		MsgBox("This program requires 1 parameter`n`npam-rdp c:\.....\SQL2, PAM Address.d6c2efa4-f38a-4b65-9438-0e07900899ef.rdp", gProgramTitle, "IconX T" gSettings.PromptTimeout)
+		EndScript()
+	}
+
+	logDebug(A_LineNumber, "main: call CyberArk using gFilenameFull= '" gFilenameFull "'")
+	rc:= CyberArk(gFilenameFull)
+	if (rc < 0) {
+		logError(A_LineNumber, "main: CyberArk - ErrorMessage= '" ErrorMessage "'")
+		MsgBox(ErrorMessage, gProgramTitle, "IconX T" gSettings.PromptTimeout)
+	}
+	
+	logDebug(A_LineNumber, "main: CyberArk - finished, rc= " rc)
+}
+
+/*
+ * Cleanup downloaded .rdp file
+ */
+if (gSettings.Cleanup) {
+	logDebug(A_LineNumber, "main: Cleanup - Deleting '" gFilenameFull "'")
+	deleteFile(gFilenameFull)
+} 
+else {
+	logDebug(A_LineNumber, "main: Cleanup - No cleanup done '" gFilenameFull "'")
 }
 
 EndScript()
 
-;------------------------
+;*****************************************************************************************************
+
+;---------------------------------------------------------------------------------
 ; Finished 
 EndScript()
 {
@@ -462,28 +416,10 @@ BeyondTrust(rdpFilename)
 	global gSettings, gLockTimeout, ErrorMessage
 	global PAM_TYPE_BEYONDTRUST
 
-	if (InStr(rdpFilename,"~")) {
-		; 8.3 short name in rdpFilename
-		rdpFilename:= GetLongPathName(rdpFilename)
-		logDebug(A_LineNumber, "BeyondTrust: Long filename= '" rdpFilename "'")
-	}
-
 	; c:\.....\SQL2-d6c2efa4-f38a-4b65-9438-0e07900899ef
-	SplitPath(rdpFilename, , &dir, &ext, &name)
-	if (RegExMatch(name, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$", &x) >0) {
+	;SplitPath(rdpFilename, , &dir, &ext, &name)
+	if (RegExMatch(gFilenameBase, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$", &x) >0) {
 		serverName:= StrReplace(x[1]," ","_")
-		
-		if (gSettings.MultiUser) 
-			serverName:= serverName "-" A_Username
-			
-		cloneFilepath:= A_Temp
-		logDebug(A_LineNumber, "BeyondTrust: cloneFilepath= '" cloneFilepath "'")
-		if (InStr(cloneFilepath,"~")) {
-			cloneFilepath:= GetLongPathName( cloneFilepath )
-			logDebug(A_LineNumber, "BeyondTrust: Long cloneFilepath= '" cloneFilepath "'")
-		}
-		cloneFilename:= cloneFilepath "\pam-rdp_" serverName ".rdp"
-		logDebug(A_LineNumber, "BeyondTrust: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
 	} 
 	else {
 		ErrorMessage:= "RDP filename '" rdpFilename "' has incorrect format"
@@ -504,6 +440,9 @@ BeyondTrust(rdpFilename)
 		commandLine:= commandLine " /w:" gSettings.WindowWidth " /h:" gSettings.WindowHeight
 	logDebug(A_LineNumber, "BeyondTrust: commandLine= '" commandLine "'")
 
+	cloneFilename:= getCloneFilename(serverName)
+	logDebug(A_LineNumber, "BeyondTrust: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
+	
 	if (SemaphoreAcquire( gLockTimeout )) {
 		; Update rdp file with new serverName
 		ip:= ""
@@ -549,17 +488,7 @@ BeyondTrust(rdpFilename)
 
 		if (gSettings.Cleanup) {
 			logDebug(A_LineNumber, "BeyondTrust: Deleting '" cloneFilename "'")
-			try {
-				if (FileExist(cloneFilename))
-					FileDelete(cloneFilename)
-				logInfo(A_LineNumber, "BeyondTrust: Deleted file '" cloneFilename "'")
-			} 
-			catch as e
-			{
-				ErrorMessage:= "Cannot delete file '" cloneFilename "'"
-				logError(A_LineNumber, "BeyondTrust: " ErrorMessage)
-				logDebug(A_LineNumber, "BeyondTrust: " e.Message)
-			}
+			deleteFile(cloneFilename)
 		} 
 
 	} 
@@ -674,14 +603,8 @@ Symantec2(rdpFilename)
 		
 		if (gSettings.MultiUser) 
 			serverName:= serverName "-" A_Username
-			
-		cloneFilepath:= A_Temp
-		logDebug(A_LineNumber, "Symantec2: cloneFilepath= '" cloneFilepath "'")
-		if (InStr(cloneFilepath,"~")) {
-			cloneFilepath:= GetLongPathName( cloneFilepath )
-			logDebug(A_LineNumber, "Symantec2: Long cloneFilepath= '" cloneFilepath "'")
-		}
-		cloneFilename:= cloneFilepath "\pam-rdp_" serverName ".rdp"
+
+		cloneFilename:= getCloneFilename(serverName)
 		logDebug(A_LineNumber, "Symantec2: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
 	} 
 	else {
@@ -728,17 +651,7 @@ Symantec2(rdpFilename)
 
 		if (gSettings.Cleanup) {
 			logDebug(A_LineNumber, "Symantec2: Deleting '" cloneFilename "'")
-			try {
-				if (FileExist(cloneFilename))
-					FileDelete(cloneFilename)
-				logInfo(A_LineNumber, "Symantec2: Deleted file '" cloneFilename "'")
-			} 
-			catch as e
-			{
-				ErrorMessage:= "Cannot delete file '" cloneFilename "'"
-				logError(A_LineNumber, "Symantec2: " ErrorMessage)
-				logDebug(A_LineNumber, "Symantec2: " e.Message)
-			}
+			deleteFile(cloneFilename)
 		} 
 
 	} 
@@ -771,11 +684,10 @@ Senhasegura(localUsername,remoteUsername,port,serverName)
 		serverName:= serverName "-" A_Username
 			
 	serverName:= StrReplace(serverName," ","_")
-	
-	ts:= FormatTime(, "yyyyMMddhhmmss")
-	cloneFilename:= A_Temp "\PAM-RDP-" serverName "-" ts ".rdp"
-	logDebug(A_LineNumber, "Senhasegura: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
 
+	cloneFilename:= getCloneFilename(serverName)
+	logDebug(A_LineNumber, "Senhasegura: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
+	
 	defaultRdpFilename:= A_MyDocuments "\default.rdp"
 	if (!FileExist(defaultRdpFilename)) {
 		FileCopy(gTemplateDefaultRdpFilename, defaultRdpFilename)
@@ -829,6 +741,11 @@ Senhasegura(localUsername,remoteUsername,port,serverName)
 		}
 		; Release critical section for others to use
 		SemaphoreRelease()
+
+		if (gSettings.Cleanup) {
+			logDebug(A_LineNumber, "Senhasegura: Deleting '" cloneFilename "'")
+			deleteFile(cloneFilename)
+		} 
 	} 
 	else {
 		ErrorMessage:= "Cannot acquire access to critical files in time."
@@ -839,11 +756,105 @@ Senhasegura(localUsername,remoteUsername,port,serverName)
 }
 
 ;---------------------------------------------------------------------------------
+CyberArk(rdpFilename) 
+{
+	logDebug(A_LineNumber, "CyberArk: RDP filename='" rdpFilename "'")
+	
+	global gSettings, gLockTimeout, ErrorMessage
+	global PAM_TYPE_CYBERARK
+
+	; c:\.....\SQL2, PSM Address.d6c2efa4-f38a-4b65-9438-0e07900899ef
+	SplitPath(rdpFilename, , &dir, &ext, &name)
+	if (RegExMatch(name, "i)(.*?), PSM Address\.[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$", &x) >0) {
+		serverName:= StrReplace(x[1]," ","_")
+		
+		if (gSettings.MultiUser) 
+			serverName:= serverName "-" A_Username
+			
+		cloneFilename:= getCloneFileame(serverName)
+		logDebug(A_LineNumber, "CyberArk: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
+	} 
+	else {
+		ErrorMessage:= "RDP filename '" rdpFilename "' has incorrect format"
+		logError(A_LineNumber, "CyberArk: " ErrorMessage)
+		return -1
+	}
+
+	; Default title of opened mstsc window when opening an RDP file
+	;SetTitleMatchMode, RegEx
+	programTitle:= "ahk_class TscShellContainerClass"
+	logDebug(A_LineNumber, "CyberArk: programTitle= '" programTitle "'")
+
+	commandLine:= gSettings.Program " " cloneFilename
+	if (gSettings.ScreenMode = "Fullscreen")
+		commandLine:= commandLine " /f"
+	else
+		commandLine:= commandLine " /w:" gSettings.WindowWidth " /h:" gSettings.WindowHeight
+	logDebug(A_LineNumber, "CyberArk: commandLine= '" commandLine "'")
+
+	if (SemaphoreAcquire( gLockTimeout )) {
+		; Update rdp file with new serverName
+		ip:= ""
+		rc:= CloneRdpFile( PAM_TYPE_CYBERARK, rdpFilename, cloneFilename, serverName, &ip )
+		logDebug(A_LineNumber, "CyberArk: rdpFilename= " rdpFilename ", cloneFilename= " cloneFilename ", serverName= " serverName ", ip= " ip)
+		
+		updateHosts:= (rc == 1)
+
+		if (rc < 0) {
+			logError(A_LineNumber, "CyberArk: CloneRdpFile - " ErrorMessage)
+		} 
+		else {
+			if (updateHosts) {
+				; add entry to hosts file
+				rc:= UpdateHostsFile("add",ip,serverName)
+				if (rc < 0) {
+					logError(A_LineNumber, "CyberArk: UpdateHostsFile (add), rc= " rc " - '" ErrorMessage "'")
+				}
+			} else {
+				logWarning(A_LineNumber, "No update to hosts file")
+			}
+			
+			if (rc >= 0) {
+				; start mstsc
+				rc:= StartProgram( serverName, commandLine, programTitle, gSettings.ConnectTimeout )
+				if (rc < 0)
+					logError(A_LineNumber, "CyberArk: StartProgram - " ErrorMessage)
+				else {
+					logInfo(A_LineNumber, "CyberArk: mstsc session started to '" serverName "'")
+				}
+				
+				if (updateHosts) {
+					; remove entry from hosts file
+					rc:= UpdateHostsFile("remove",ip,serverName)
+					if (rc < 0) {
+						logError(A_LineNumber, "CyberArk: UpdateHostsFile (remove), rc= " rc " - '" ErrorMessage "'")
+					}
+				}
+			}
+		}
+		; Release critical section for others to use
+		SemaphoreRelease()
+
+		if (gSettings.Cleanup) {
+			logDebug(A_LineNumber, "CyberArk: Deleting '" cloneFilename "'")
+			deleteFile(cloneFilename)
+		} 
+	} 
+	else {
+		ErrorMessage:= "Cannot acquire access to critical files in time."
+		logError(A_LineNumber, "CyberArk: " ErrorMessage)
+		rc:= -1
+	}
+	return rc
+}
+
+;---------------------------------------------------------------------------------
 ; Clone/Update RDP file
 ;
 CloneRdpFile(pType,rdpFilename,cloneFilename,serverName:= "",&ip:= "", username:="")
 {
-	global gSettings, PAM_TYPE_BEYONDTRUST, PAM_TYPE_SYMANTEC, PAM_TYPE_SYMANTEC2, PAM_TYPE_SENHASEGURA, ErrorMessage
+	global gSettings, ErrorMessage
+	global PAM_TYPE_BEYONDTRUST, PAM_TYPE_SYMANTEC, PAM_TYPE_SYMANTEC2, PAM_TYPE_SENHASEGURA, PAM_TYPE_CYBERARK
 	rc:= 1
 	
 	;MsgBox(DisplayObj(gSettings))
@@ -1024,7 +1035,7 @@ CloneRdpFile(pType,rdpFilename,cloneFilename,serverName:= "",&ip:= "", username:
 				logDebug(A_LineNumber, "CloneRdpFile: ip= '" ip "'")
 			}
 		}
-		if (pType == PAM_TYPE_SENHASEGURA) {
+		if (pType == PAM_TYPE_SENHASEGURA | pType == PAM_TYPE_CYBERARK) {
 			; an address is not found in content
 			; add first gPamInfo address
 
@@ -1173,13 +1184,46 @@ StartProgram(serverName,command,title,timeout)
 	return pid
 }
 
-;------------------------
+;---------------------------------------------------------------------------------
+getCloneFilename( serverName )
+{
+	cloneFilepath:= A_Temp
+	logDebug(A_LineNumber, "getCloneFilename: cloneFilepath= '" cloneFilepath "'")
+	if (InStr(cloneFilepath,"~")) {
+		cloneFilepath:= GetLongPathName( cloneFilepath )
+		logDebug(A_LineNumber, "getCloneFilename: Long cloneFilepath= '" cloneFilepath "'")
+	}
+	ts:= FormatTime(, "yyyyMMddhhmmss")
+	cloneFilename:= cloneFilepath "\PAM-RDP-" serverName "-" ts ".rdp"
+	logDebug(A_LineNumber, "getCloneFilename: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
+
+	return cloneFilename
+}
+
+;---------------------------------------------------------------------------------
+deleteFile( filename )
+{
+	logDebug(A_LineNumber, "deleteFile: Deleting '" filename "'")
+	try {
+		if (FileExist(filename))
+			FileDelete(filename)
+		logInfo(A_LineNumber, "deleteFile: Deleted file '" filename "'")
+	} 
+	catch as e
+	{
+		ErrorMessage:= "Cannot delete file '" filename "'"
+		logError(A_LineNumber, "deleteFile: " ErrorMessage)
+		logDebug(A_LineNumber, "deleteFile: " e.Message)
+	}
+}
+
+;---------------------------------------------------------------------------------
 ; read pam-rdp.properties
 ;
 ReadProperties( filename, pType:= 0, settings:= 0 )
 {
 	global PROPERTY_TYPE_USER, PROPERTY_TYPE_SYSTEM
-	global PAM_TYPE_BEYONDTRUST, PAM_TYPE_SYMANTEC, PAM_TYPE_SENHASEGURA
+	global PAM_TYPE_BEYONDTRUST, PAM_TYPE_SYMANTEC, PAM_TYPE_SENHASEGURA, PAM_TYPE_CYBERARK
 	global LOG_ERROR, LOG_WARNING, LOG_INFO, LOG_DEBUG, LOG_TRACE
 	global gLogLevel, ErrorMessage
 	
@@ -1373,7 +1417,7 @@ ReadProperties( filename, pType:= 0, settings:= 0 )
 		;----------------------
 		x:= IniRead(filename, "main", "PAMtype", defPamType)
 		logDebug(A_LineNumber, "ReadProperties: PamType= '" x "' (file/default)")
-		match:= "i)(" PAM_TYPE_BEYONDTRUST "|" PAM_TYPE_SYMANTEC "|" PAM_TYPE_SENHASEGURA ")"
+		match:= "i)(" PAM_TYPE_BEYONDTRUST "|" PAM_TYPE_SYMANTEC "|" PAM_TYPE_SENHASEGURA "|" PAM_TYPE_CYBERARK ")"
 		if (!RegExMatch(x,match)) {
 			x:= PAM_TYPE_BEYONDTRUST
 			logWarning(A_LineNumber, "ReadProperties: PamType not OK, using default")
@@ -1426,7 +1470,7 @@ ReadProperties( filename, pType:= 0, settings:= 0 )
 		x:= IniRead(filename, settings.pamType, "cntServer", defCntServer)
 		logDebug(A_LineNumber, "ReadProperties: CntServer= '" x "' (file/default)")
 		settings.CntServer:= (!IsInteger(x) or IsSpace(x)) ? defCntServer : Integer( x )
-		logInfo(A_LineNumber, "ReadProperties: MultiUser= '" settings.CntServer "' (final)")
+		logInfo(A_LineNumber, "ReadProperties: CntServer= '" settings.CntServer "' (final)")
 
 		;----------------------
 		; PamInfo / servers
@@ -1459,6 +1503,10 @@ ReadProperties( filename, pType:= 0, settings:= 0 )
 
 		; --- Symantec ---
 		if (settings.PamType == PAM_TYPE_SYMANTEC) {
+		}
+
+		; --- CyberArk ---
+		if (settings.PamType == PAM_TYPE_CYBERARK) {
 		}
 	}
 
@@ -1590,7 +1638,6 @@ GetLongPathName(path)
 	Buff:= "***************************************************************************************************************************************************"
 	Buff:= Buff Buff Buff
 
-	;VarSetCapacity(LONG,2048)	; 2048 is a very long path/filename
 	logTrace(A_LineNumber, "GetLongPathName: path= " path)
 	rc:= DllCall("GetLongPathName", "Str",path, "Str",&Buff, "UInt",strlen(Buff))
 	logTrace(A_LineNumber, "GetLongPathName: rc= " rc ", LastError= " A_LastError)
