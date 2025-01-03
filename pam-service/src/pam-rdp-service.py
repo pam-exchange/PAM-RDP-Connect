@@ -43,7 +43,7 @@ class PAMRDPService(win32serviceutil.ServiceFramework):
         #self.config.read('c:/tmp/pam-rdp-service.properties')
         
         self.setup_logging()
-        self.allowed_client = self.config.get('Service', 'allowed_client')
+        self.allowed_client = self.config.get('Service', 'allowed_client', fallback='pam-rdp.exe')
         
         self.hosts_file_path = r"C:\Windows\System32\drivers\etc\hosts"
         self.backup_hosts_file_path = self.hosts_file_path + ".bak"

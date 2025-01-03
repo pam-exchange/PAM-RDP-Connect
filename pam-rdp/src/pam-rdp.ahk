@@ -187,7 +187,7 @@ if (A_Args.Length = 1)
 
 ;------------------------
 if (gSettings.PamType = PAM_TYPE_BEYONDTRUST) {
-	if (A_Args.Length <> 1 || RegExMatch(gFilenameBase, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
+	if (A_Args.Length != 1 || RegExMatch(gFilenameBase, "i)(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
 		; parameter not recognized nor accepted
 		MsgBox("This program requires 1 parameter`n`npam-rdp c:\.....\SQL2-d6c2efa4-f38a-4b65-9438-0e07900899ef.rdp", gProgramTitle, "IconX T" gSettings.PromptTimeout)
 		EndScript()
@@ -198,9 +198,8 @@ if (gSettings.PamType = PAM_TYPE_BEYONDTRUST) {
 	if (rc < 0) {
 		logError(A_LineNumber, "main: BeyondTrust - ErrorMessage= '" ErrorMessage "'")
 		MsgBox(ErrorMessage, gProgramTitle, "IconX T" gSettings.PromptTimeout)
-
 	}
-	
+	 
 	logDebug(A_LineNumber, "main: BeyondTrust - finished, rc= " rc)
 }
 
@@ -251,13 +250,13 @@ if (gSettings.PamType = PAM_TYPE_SYMANTEC) {
 	logDebug(A_LineNumber, "main: Symantec - finished, rc= " rc)
 	
 	; no cleanup here
-	gSettings.Cleanup= false
+	gSettings.Cleanup:= false
 }
 
 ;------------------------
 if (gSettings.PamType = PAM_TYPE_SYMANTEC2) {
 
-	if (A_Args.Length <> 1 || RegExMatch(gFilenameBase, "i)(.*_)?(.*)_PAMGateway") <= 0) {
+	if (A_Args.Length != 1 || RegExMatch(gFilenameBase, "i)(.*_)?(.*)_PAMGateway") <= 0) {
 		; parameter not recognized nor accepted
 		MsgBox("This program requires 1 or 3 parameters`n`n1: pam-rdp <filename.rdp`n`n3: pam-rdp <Local IP> <First Port> <Device Name>", gProgramTitle, "IconX T" gSettings.PromptTimeout)
 		EndScript()
@@ -332,12 +331,12 @@ if (gSettings.PamType = PAM_TYPE_SENHASEGURA) {
 	logDebug(A_LineNumber, "main: Senhasegura - finished, rc= " rc)
 	
 	; no cleanup here
-	gSettings.Cleanup= false
+	gSettings.Cleanup:= false
 }
 
 ;------------------------
 if (gSettings.PamType = PAM_TYPE_CYBERARK) {
-	if (A_Args.Length <> 1 || RegExMatch(name, "i)(.*?), PSM Address\.[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
+	if (A_Args.Length != 1 || RegExMatch(name, "i)(.*?), PSM Address\.[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$") <= 0) {
 		; parameter not recognized nor accepted
 		MsgBox("This program requires 1 parameter`n`npam-rdp c:\.....\SQL2, PAM Address.d6c2efa4-f38a-4b65-9438-0e07900899ef.rdp", gProgramTitle, "IconX T" gSettings.PromptTimeout)
 		EndScript()
@@ -771,7 +770,7 @@ CyberArk(rdpFilename)
 		if (gSettings.MultiUser) 
 			serverName:= serverName "-" A_Username
 			
-		cloneFilename:= getCloneFileame(serverName)
+		cloneFilename:= getCloneFilename(serverName)
 		logDebug(A_LineNumber, "CyberArk: serverName= '" serverName "', cloneFilename= '" cloneFilename "'")
 	} 
 	else {
