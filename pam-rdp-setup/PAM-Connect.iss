@@ -54,7 +54,7 @@ Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\pam-rdp.user.properties"; De
 Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\pam-rdp-config.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\pam-rdp-service.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\pam-rdp-service.properties"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
+;Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\Template-default.rdp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\version"; DestDir: "{app}"; Flags: ignoreversion
 Source: "Z:\workspace\PAM-Exchange\PAM-Connect\dist\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs

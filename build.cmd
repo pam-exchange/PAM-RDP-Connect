@@ -1,3 +1,4 @@
+@echo off
 set AHK_HOME=C:\opt\AutoHotKey-v2
 set PY_HOME=C:\opt\Python313
 set INNO_HOME=C:\opt\InnoSetup-6.3.3
@@ -36,22 +37,21 @@ mkdir %WORK%
 
 set PYOPTS=--noconfirm --onefile --hidden-import=win32timezone --hidden-import=psutil --distpath %DIST% --workpath %WORK%
 set SRC=.\pam-rdp-service\src
+set CFG=.\pam-rdp-service\config
 set NAME=pam-rdp-service
 
 pyinstaller %PYOPTS% %SRC%\%NAME%.py
 
 rmdir /S /Q %WORK%
 rm /Y %NAME%.spec
-copy /Y %SRC%\%NAME%.properties %DIST%
+copy /Y %CFG%\%NAME%.properties %DIST%
 
 rem
 rem Copy documentation and other files 
 rem 
 xcopy /S /I /Y Docs %DIST%\Docs
 
-set RES=.\resources
-copy /Y %RES%\Readme.txt %DIST%
-copy /Y %RES%\version %DIST%
+copy /Y version %DIST%
 copy /Y LICENSE %DIST%
 
 rem
