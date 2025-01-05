@@ -1,5 +1,6 @@
 set AHK_HOME=C:\opt\AutoHotKey-v2
 set PY_HOME=C:\opt\Python313
+set INNO_HOME=C:\opt\InnoSetup-6.3.3
 
 set DIST=.\dist
 if exist %DIST% rmdir /S /Q %DIST%
@@ -34,7 +35,7 @@ if exist %WORK% rmdir /S /Q %WORK%
 mkdir %WORK%
 
 set PYOPTS=--noconfirm --onefile --hidden-import=win32timezone --hidden-import=psutil --distpath %DIST% --workpath %WORK%
-set SRC=.\pam-service\src
+set SRC=.\pam-rdp-service\src
 set NAME=pam-rdp-service
 
 pyinstaller %PYOPTS% %SRC%\%NAME%.py
@@ -52,6 +53,12 @@ set RES=.\resources
 copy /Y %RES%\Readme.txt %DIST%
 copy /Y %RES%\version %DIST%
 copy /Y LICENSE %DIST%
+
+rem
+rem InnoSetup
+rem
+set INNO_SCRIPT=.\pam-rdp-setup\PAM-Connect.iss
+%INNO_HOME%\ISCC.exe /O%DIST% %INNO_SCRIPT%
 
 rem 
 rem Package to a zip file
