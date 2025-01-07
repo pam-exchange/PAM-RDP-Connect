@@ -9,7 +9,7 @@ time, this is no big deal. However, if you open many sessions to
 different end-points, the mstsc program will see them as being the same 
 end-point (the address of the PAM server). 
 
-![PAM RDP Connect]({% link /Docs/ConnectionBar-PamServer.png %})
+![PAM RDP Connect](Docs/ConnectionBar-PamServer.png)
 
 
 The `pam-rdp.exe` program is a starter program for mstsc. It will change 
@@ -18,7 +18,7 @@ end-point, thus when opening multiple sessions to different end-points,
 the window title and connection bar will identify the real end-point and 
 not just the PAM server. 
 
-See the [user documentation](./Docs/PAM-RDP-Connect.html) for details.
+See the [user documentation](https://github.com/pam-exchange/PAM-RDP-Connect/blob/main/Docs/PAM-RDP-Connect.html) for details.
 
 
 The `pam-rdp.exe` starter program has been tested with Broadcom/Symantec PAM, 
