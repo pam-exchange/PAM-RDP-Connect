@@ -61,7 +61,7 @@ The Python program (Windows service) requires that you install pyinstaller.
 
 ***Important***<br>
 Before building and packaging the installer program, it is recommended that the 
-property files pam-rdp.system.properties and pam-rdp.user.properties are adapted 
+property files `pam-rdp.system.properties` and `pam-rdp.user.properties` are adapted 
 to you PAM environment. There are sample properties available for different PAM 
 solutions.
 
@@ -74,6 +74,15 @@ packaged into a single zip-file.
 It is sufficient to use the PAM-RDP-Connect-Install-2.9.exe installer program on
 user's desktop.
 
+## Configuration
+
+[pam-rdp.user.properties](/Docs/pam-rdp.user.md)
+
+[pam-rdp.system.properties - BeyondTrust Password Safe](/Docs/pam-rdp.system-BeyondTrust.md)
+[pam-rdp.system.properties - Symantec](/Docs/pam-rdp.system-Symantec.md)
+[pam-rdp.system.properties - Senhasegura](/Docs/pam-rdp.system-Senhasegura.md)
+[pam-rdp.system.properties - CyberArk](/Docs/pam-rdp.system-CyberArk.md)
+ 
 ### Configuration - BeyondTrust Password Safe
 
 When used with BeyondTrust Password Safe a session RDP file is downloaded
@@ -90,8 +99,6 @@ like <hostname>-d6c2efa4-f38a-4b65-9438-0e07900899ef.rdp, where the
 requested session (RDP file). The hostname is used as window title and 
 connection bar name. 
 
-[pam-rdp.system.properties for BeyondTrust](/Docs/pam-rdp.system-BeyondTrust.md)
-
 ### Configuration - Symantec PAM
 
 Used with Broadcom/Symantec PAM pam-rdp.exe expects three parameters; the 
@@ -106,7 +113,6 @@ literally as written.
 The new service must be assigned to devices and a user policy for this 
 service must be created.
 
-[pam-rdp.system.properties for Symantec](/Docs/pam-rdp.system-Symantec.md)
 
 ### Configuration - Senhasegura PAM
 

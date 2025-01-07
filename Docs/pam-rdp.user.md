@@ -1,6 +1,6 @@
 # pam-rdp.user.properties
 
-'''
+```
 [main]
 ; LogLevel for pam-rdp.exe. 
 ; Valid values are ERROR, WARNING, INFO, DEBUG, TRACE
@@ -78,4 +78,4 @@ acceptSecurityMessages= true
 ; when the window is resized.
 ; Symantec: Update default.rdp
 useSmartSizing= false
-'''
+```

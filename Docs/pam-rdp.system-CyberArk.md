@@ -1,6 +1,8 @@
-# pam-rdp.sysem.properties - CyberArk
+# pam-rdp.sysem.properties
 
-'''
+Sample system properties for CyberArk
+
+```
 ; PAM-RDP System or installation properties
 ; These settings are not to be modified by users
 ; and are configured by the company hosting
@@ -49,4 +51,4 @@ cntServer= 1
 ip= 192.168.242.101
 dns= cyberark01.prod.pam-exchange.ch
 hostname= cyberark01
-'''
+```

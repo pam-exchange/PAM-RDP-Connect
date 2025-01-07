@@ -1,4 +1,6 @@
-# pam-rdp.sysem.properties - BeyondTrust Password Safe
+# pam-rdp.sysem.properties
+
+Sample system properties for BeyondTrust Password Safe
 
 ```
 ; PAM-RDP System or installation properties

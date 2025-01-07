@@ -1,6 +1,8 @@
-# pam-rdp.sysem.properties - Symantec
+# pam-rdp.sysem.properties
 
-'''
+Sample system properties for Symantec
+
+```
 ; PAM-RDP System or installation properties
 ; These settings are not to be modified by users
 ; and are configured by the company hosting
@@ -35,4 +37,4 @@ multiUser= false
 [SymantecPAM]
 ; There are no specific settings for SymantecPAM
 
-'''
+```
