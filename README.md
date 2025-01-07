@@ -78,9 +78,9 @@ user's desktop.
 
 [pam-rdp.user.properties](/Docs/pam-rdp.user.md)
 
-[pam-rdp.system.properties - BeyondTrust Password Safe](/Docs/pam-rdp.system-BeyondTrust.md)
-[pam-rdp.system.properties - Symantec](/Docs/pam-rdp.system-Symantec.md)
-[pam-rdp.system.properties - Senhasegura](/Docs/pam-rdp.system-Senhasegura.md)
+[pam-rdp.system.properties - BeyondTrust Password Safe](/Docs/pam-rdp.system-BeyondTrust.md)<br>
+[pam-rdp.system.properties - Symantec](/Docs/pam-rdp.system-Symantec.md)<br>
+[pam-rdp.system.properties - Senhasegura](/Docs/pam-rdp.system-Senhasegura.md)<br>
 [pam-rdp.system.properties - CyberArk](/Docs/pam-rdp.system-CyberArk.md)
  
 ### Configuration - BeyondTrust Password Safe
