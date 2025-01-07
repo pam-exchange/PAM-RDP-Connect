@@ -10,7 +10,7 @@ DetectHiddenWindows true
 SplitPath(A_ScriptFullPath, , , , &gScriptName)
 gVersion:= "2.9.0"
 
-global gProgramTitle:= "PAM Connect Configuration"		; title for pop-up messages
+global gProgramTitle:= "PAM RDP Connect Configuration"		; title for pop-up messages
 
 global gSelfPid:= DllCall("GetCurrentProcessId")
 global gSelfPidHex:= Format("{:04x}",gSelfPid)
@@ -60,7 +60,7 @@ global PROPERTY_TYPE_SYSTEM:= 2
 SplitPath(A_ScriptFullPath, , &dir, &ext, &name)
 propertyFilename:= "pam-rdp.user.properties"
 global installPropertyFilename:= dir "\" propertyFilename
-userPropertyPath:= A_AppData "\PAM-Exchange\PAM Connect"
+userPropertyPath:= A_AppData "\PAM-Exchange\PAM-RDP-Connect"
 global userPropertyFilename:= userPropertyPath "/" propertyFilename
 userPropertyFilename:= StrReplace(userPropertyFilename, "/", "\")
 
@@ -77,7 +77,7 @@ else {
 
 ; Read properties
 global gSettings:= ReadProperties(loadPropertyFilename,PROPERTY_TYPE_USER)
-global displayPropertyFilename:= StrReplace( loadPropertyFilename, "PAM-Exchange\PAM Connect", "...")
+global displayPropertyFilename:= StrReplace( loadPropertyFilename, "PAM-Exchange\PAM-RDP-Connect", "...")
 gSettings.displayPropertyFilename:= displayPropertyFilename
 
 ; Load texts, build gui and show it
@@ -302,7 +302,7 @@ mnuFileOpenEvent(Item, *) {
 		loadPropertyFilename:= openFilename
 		gSettings:= ReadProperties(loadPropertyFilename,PROPERTY_TYPE_USER)
 
-		displayPropertyFilename:= StrReplace( openFilename, "PAM-Exchange\PAM Connect", "...")
+		displayPropertyFilename:= StrReplace( openFilename, "PAM-Exchange\PAM-RDP-Connect", "...")
 		gSettings.displayPropertyFilename:= displayPropertyFilename
 
 		if (loadPropertyFilename == installPropertyFilename) {
@@ -374,7 +374,7 @@ mnuFileSaveAsEvent(Item, *) {
 
 		MsgBox(gTexts.msgFileSavedTxt "`n`n" saveFilename, gProgramTitle, 0)
 		
-		displayPropertyFilename:= StrReplace( saveFilename, "PAM-Exchange\PAM Connect", "...")
+		displayPropertyFilename:= StrReplace( saveFilename, "PAM-Exchange\PAM-RDP-Connect", "...")
 		gSettings.displayPropertyFilename:= displayPropertyFilename
 		myGui['ctrlPropertyFilename'].Text:= displayPropertyFilename
 		return 0
@@ -388,7 +388,7 @@ mnuFileSaveAsEvent(Item, *) {
 ;--------------------------------------------------------------------------------------------------------
 mnuHelpQuickGuideEvent(Item, *) {
 	global gTexts, gProgramTitle,gVersion
-	str:= "PAM Connect Configuration`n----------------------------------`n`n"
+	str:= "PAM-RDP-Connect Configuration`n----------------------------------`n`n"
 	str:= str gTexts.QuickGuideTxt
 	str:= str "`n`nVersion " gVersion
 	str:= str "`nCopyright ©2020-2024 Columbus A/S"
@@ -399,7 +399,7 @@ mnuHelpQuickGuideEvent(Item, *) {
 ;--------------------------------------------------------------------------------------------------------
 mnuHelpAboutEvent(Item, *) {
 	global gTexts, gProgramTitle
-	str:= "PAM Connect Configuration`n----------------------------------`n`n"
+	str:= "PAM-RDP-Connect Configuration`n----------------------------------`n`n"
 	str:= str gTexts.AboutTxt
 	str:= str "`n`nVersion " gVersion
 	str:= str "`nCopyright ©2020-2024 Columbus A/S"
@@ -542,8 +542,8 @@ GetTexts() {
 
 	txt.msgFileSavedTxt:= "Properties saved to file"
 
-	txt.AboutTxt:= "PAM Connect Configuration is used to update the user's properties file for PAM Connect."
-	txt.QuickGuideTxt:= "The user's property settings in pam-rdp.user.properties files can be updated using the configuration GUI.\nThe program is used to update the settings a user can or should modify. System settings must be updateded using a standard text editor. System settings includes the addresses of PAM servers.\n\nThe default user's configuraion is loaded from the users %AppData% directory. If a property file is not found, the property file from the installation location is used. When saving the file, it is recommended to use the default location suggested. This is where the PAM Connect program will read the properties from."
+	txt.AboutTxt:= "PAM-RDP-Connect Configuration is used to update the user's properties file for PAM-RDP-Connect."
+	txt.QuickGuideTxt:= "The user's property settings in pam-rdp.user.properties files can be updated using the configuration GUI.\nThe program is used to update the settings a user can or should modify. System settings must be updateded using a standard text editor. System settings includes the addresses of PAM servers.\n\nThe default user's configuraion is loaded from the users %AppData% directory. If a property file is not found, the property file from the installation location is used. When saving the file, it is recommended to use the default location suggested. This is where the PAM-RDP-Connect program will read the properties from."
 	
 	txt.AboutTxt:= StrReplace(txt.AboutTxt,"\n","`n")
 	txt.QuickGuideTxt:= StrReplace(txt.QuickGuideTxt,"\n","`n")

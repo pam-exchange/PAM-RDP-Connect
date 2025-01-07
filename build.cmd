@@ -43,7 +43,7 @@ set NAME=pam-rdp-service
 pyinstaller %PYOPTS% %SRC%\%NAME%.py
 
 rmdir /S /Q %WORK%
-rm /Y %NAME%.spec
+erase /Q /F %NAME%.spec
 copy /Y %CFG%\%NAME%.properties %DIST%
 
 rem
@@ -57,14 +57,14 @@ copy /Y LICENSE %DIST%
 rem
 rem InnoSetup
 rem
-set INNO_SCRIPT=.\pam-rdp-setup\PAM-Connect.iss
+set INNO_SCRIPT=.\pam-rdp-setup\pam-rdp-setup.iss
 %INNO_HOME%\ISCC.exe /O%DIST% %INNO_SCRIPT%
 
 rem 
 rem Package to a zip file
 rem
-set NAME=PAM-Connect
-if exist %NAME%.zip rm /Y %NAME%.zip
+set NAME=PAM-RDP-Connect
+if exist %NAME%.zip erase /Q /F %NAME%.zip
 cd %DIST%
 zip -r ..\%NAME%.zip *.*
 cd ..

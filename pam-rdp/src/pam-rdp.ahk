@@ -7,14 +7,14 @@ DetectHiddenWindows true
 SplitPath(A_ScriptFullPath, , , , &gScriptName)
 gVersion:= "2.9.0"
 
-global gProgramTitle:= "PAM Connect"		; title for pop-up messages
+global gProgramTitle:= "PAM RDP Connect"		; title for pop-up messages
 
 global gSelfPid:= DllCall("GetCurrentProcessId")
 global gSelfPidHex:= Format("{:04x}",gSelfPid)
 
 global gLockFilename:= A_Temp "\" gScriptName ".lock"
 global gLockHandle:= 0
-global gPipeName:= "PAM-CONNECT-SERVICE"
+global gPipeName:= "PAM-RDP-CONNECT-SERVICE"
 
 ;-------
 ; Constants
@@ -101,7 +101,7 @@ systemPropertyFilename:= dir "\" name ".system.properties"
 global gSettings:= ReadProperties(systemPropertyFilename,PROPERTY_TYPE_SYSTEM)
 
 defaultPropertyFilename:= dir "\" name ".user.properties"
-userPropertyPath:= A_AppData "\PAM-Exchange\PAM Connect"
+userPropertyPath:= A_AppData "\PAM-Exchange\PAM-RDP-Connect"
 userPropertyFilename:= userPropertyPath "/" name ".user.properties"
 if (!FileExist(userPropertyFilename)) {
 	DirCreate(userPropertyPath)
@@ -122,15 +122,16 @@ global gFilenameExt:= ""
 ; Heartbeat program (after ReadProperties)
 if (gSettings.Heartbeat) {
 	SplitPath(A_ScriptFullPath, , &dir, &ext, &name)
-	gHeartbeatProgramName:= "pam-rdp-heartbeat.exe"
-	gHeartbeatProgram:= dir "\" gHeartbeatProgramName
+	;gHeartbeatProgramName:= "PAM RDP Heartbeat"
+	;gHeartbeatProgram:= dir "\" gHeartbeatProgramName
+	gHeartbeatProgram:= gSettings.HeartbeatProgram
 
 	If (FileExist(gHeartbeatProgram))
 	{
-		If WinExist( gHeartbeatProgramName ) {
-			logDebug(A_LineNumber, "main: Heartbeat program '" gHeartbeatProgramName "' is already running")
-		}
-		else {
+;		If WinExist( gHeartbeatProgramName ) {
+;			logDebug(A_LineNumber, "main: Heartbeat program '" gHeartbeatProgramName "' is already running")
+;		}
+;		else {
 			logInfo(A_LineNumber, "main: Starting heartbeat program '" gHeartbeatProgram "'")
 			try {
 				Run(gHeartbeatProgram)
@@ -139,7 +140,7 @@ if (gSettings.Heartbeat) {
 			{
 				logError(A_LineNumber, "main: Cannot start heartbeat program '" gHeartbeatProgram "', lastError= " e.Message)
 			}
-		}
+;		}
 	}
 	else 
 		logError(A_LineNumber, "main: Heartbeat program '" gHeartbeatProgram "' is not found")
@@ -1408,6 +1409,7 @@ ReadProperties( filename, pType:= 0, settings:= 0 )
 		
 		defPamType:= PAM_TYPE_BEYONDTRUST
 		defHeartbeat:= "true"
+		defHeartbeatProgram:= "C:\Program Files\PAM-Exchange\PAM-RDP-Heartbeat\pam-rdp-heartbeat.exe"
 		defProgram:= "C:\Windows\system32\mstsc.exe"
 		defMultiUser:= "false"
 
@@ -1431,6 +1433,13 @@ ReadProperties( filename, pType:= 0, settings:= 0 )
 		logDebug(A_LineNumber, "ReadProperties: Heartbeat= '" x "' (file/default)")
 		settings.Heartbeat:= InStr(x,"true")
 		logInfo(A_LineNumber, "ReadProperties: Heartbeat= '" settings.Heartbeat "' (final)")
+
+		if (settings.Heartbeat) {
+			x:= IniRead(filename, "main", "heartbeatprogram", defHeartbeatProgram)
+			logDebug(A_LineNumber, "ReadProperties: Heartbeat= '" x "' (file/default)")
+			settings.HeartbeatProgram:= x
+			logInfo(A_LineNumber, "ReadProperties: HeartbeatProgram= '" settings.HeartbeatProgram "' (final)")
+		}
 
 		;----------------------
 		; Program

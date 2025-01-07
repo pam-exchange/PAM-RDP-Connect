@@ -23,8 +23,8 @@ import psutil
 from ntsecuritycon import *  # nopycln: import
 
 class PAMRDPService(win32serviceutil.ServiceFramework):
-    _svc_name_ = "PAM-RDP-SERVICE"
-    _svc_display_name_ = "PAM Connect Service"
+    _svc_name_ = "PAM-RDP-CONNECT-SERVICE"
+    _svc_display_name_ = "PAM-RDP-Connect Service"
     _svc_description_ = "Service to add or remove entries from hosts file via named pipe."
 
     def __init__(self, args):
@@ -47,7 +47,7 @@ class PAMRDPService(win32serviceutil.ServiceFramework):
         self.config.read(self.configFilename)
         
         self.setup_logging()
-        self.allowed_client = self.config.get('Service', 'allowed_client', fallback='C:\Program Files\PAM-Exchange\PAM Connect\pam-rdp.exe')
+        self.allowed_client = self.config.get('Service', 'allowed_client', fallback=r'C:\Program Files\PAM-Exchange\PAM-RDP-Connect\pam-rdp.exe')
         
         self.hosts_file_path = r"C:\Windows\System32\drivers\etc\hosts"
         self.backup_hosts_file_path = self.hosts_file_path + ".bak"
