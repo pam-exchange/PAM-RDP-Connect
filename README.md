@@ -90,6 +90,7 @@ like <hostname>-d6c2efa4-f38a-4b65-9438-0e07900899ef.rdp, where the
 requested session (RDP file). The hostname is used as window title and 
 connection bar name. 
 
+[pam-rdp.system.properties for BeyondTrust](/Docs/pam-rdp.system-BeyondTrust.md)
 
 ### Configuration - Symantec PAM
 
@@ -104,6 +105,8 @@ literally as written.
 
 The new service must be assigned to devices and a user policy for this 
 service must be created.
+
+[pam-rdp.system.properties for Symantec](/Docs/pam-rdp.system-Symantec.md)
 
 ### Configuration - Senhasegura PAM
 
