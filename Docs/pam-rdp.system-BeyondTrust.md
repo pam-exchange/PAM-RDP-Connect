@@ -1,3 +1,6 @@
+# pam-rdp.sysem.properties - BeyondTrust Password Safe
+
+'''
 ; PAM-RDP System or installation properties
 ; These settings are not to be modified by users
 ; and are configured by the company hosting
@@ -5,11 +8,10 @@
 
 [main]
 ; Change the PAMtype to reflect the PAM server. 
-;PAMtype= BeyondTrustPasswordSafe
+PAMtype= BeyondTrustPasswordSafe
 ;PAMtype= SymantecPAM
 ;PAMtype= Senhasegura
-PAMtype= CyberArk
-
+;PAMtype= CyberArk
 
 ; heartbeat is a program launched at the users desktop.
 ; The program will send messages to open RDP session preventing
@@ -29,20 +31,39 @@ mstscProgram= c:\windows\system32\mstsc.exe
 multiUser= false
 
 
-[CyberArk]
+[BeyondTrustPasswordSafe]
 ; The settings in this and subsequent settings are for 
-; CyberArk
+; BeyondTrust Password Safe
 
 ; port is the port used when connecting the RDP client to PAM
-port= 3389
+port= 4489
 
-; cntServer is the number of PAM servers for CyberArk. 
-; Use just one (1) server or a load balancer in the [server1] configuration. 
-cntServer= 1
+; The following sections are for the loadbalancer and every server in
+; a Password Safe cluster. The server sections must be named
+; as [serverX] where X is a sequence number starting with 1.
+; If a server section is missing, the program may fail.
+; The loadbalancer is one of the servers
 
-;-----------------------------------------
-; CyberArk server
+; Subsequent sections must each each have an IP address, 
+; a full DNS name and a hostname specified.
+
+; cntServer is the number of PAM servers behind the loadbalancer 
+; Subsequent server sections must match the number specified here.
+cntServer= 3
+
 [server1]
-ip= 192.168.242.101
-dns= cyberark01.prod.pam-exchange.ch
-hostname= cyberark01
+ip= 192.168.242.11
+dns= pam-srv-01.prod.pam-exchange.ch
+hostname= pam-srv-01
+
+[server2]
+ip= 192.168.242.33
+dns= pam-srv-02.prod.pam-exchange.ch
+hostname= pam-srv-02
+
+[server3]
+; load balancer
+ip= 192.168.242.10
+dns= pam.pam-exchange.ch
+hostname= pam
+'''

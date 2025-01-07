@@ -1,3 +1,6 @@
+# pam-rdp.system.properties - Senhasegura
+
+'''
 ; PAM-RDP System or installation properties
 ; These settings are not to be modified by users
 ; and are configured by the company hosting
@@ -7,8 +10,8 @@
 ; Change the PAMtype to reflect the PAM server. 
 ;PAMtype= BeyondTrustPasswordSafe
 ;PAMtype= SymantecPAM
-;PAMtype= Senhasegura
-PAMtype= CyberArk
+PAMtype= Senhasegura
+;PAMtype= CyberArk
 
 
 ; heartbeat is a program launched at the users desktop.
@@ -29,20 +32,21 @@ mstscProgram= c:\windows\system32\mstsc.exe
 multiUser= false
 
 
-[CyberArk]
+[Senhasegura]
 ; The settings in this and subsequent settings are for 
-; CyberArk
+; Senhasegura
 
 ; port is the port used when connecting the RDP client to PAM
 port= 3389
 
-; cntServer is the number of PAM servers for CyberArk. 
+; cntServer is the number of PAM servers for Senhasegura. 
 ; Use just one (1) server or a load balancer in the [server1] configuration. 
 cntServer= 1
 
 ;-----------------------------------------
-; CyberArk server
+; Senhasegura server
 [server1]
 ip= 192.168.242.101
-dns= cyberark01.prod.pam-exchange.ch
-hostname= cyberark01
+dns= senhase01.prod.pam-exchange.ch
+hostname= senhase01
+'''

@@ -56,7 +56,8 @@ Source: "..\dist\pam-rdp-service.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\pam-rdp-service.properties"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\Template-default.rdp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\dist\version"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\dist\Docs\*"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\Docs\*.png"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\dist\Docs\*.html"; DestDir: "{app}\Docs"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
