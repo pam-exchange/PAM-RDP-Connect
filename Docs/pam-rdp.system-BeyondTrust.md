@@ -1,6 +1,6 @@
 # pam-rdp.sysem.properties - BeyondTrust Password Safe
 
-'''
+```
 ; PAM-RDP System or installation properties
 ; These settings are not to be modified by users
 ; and are configured by the company hosting
@@ -66,4 +66,4 @@ hostname= pam-srv-02
 ip= 192.168.242.10
 dns= pam.pam-exchange.ch
 hostname= pam
-'''
+```
