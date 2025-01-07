@@ -18,7 +18,7 @@ end-point, thus when opening multiple sessions to different end-points,
 the window title and connection bar will identify the real end-point and 
 not just the PAM server. 
 
-See the [user documentation](Docs/pam-rdp-connect.html) for details.
+See the [user documentation](Docs/PAM-RDP-Connect.html) for details.
 
 
 The `pam-rdp.exe` starter program has been tested with Broadcom/Symantec PAM, 
