@@ -18,7 +18,7 @@ end-point, thus when opening multiple sessions to different end-points,
 the window title and connection bar will identify the real end-point and 
 not just the PAM server. 
 
-See the [user documentation](Docs/PAM-RDP-Connect.md) for details.
+See the [user documentation](/Pagers/PAM-RDP-Connect.md) for details.
 
 
 The `pam-rdp.exe` starter program has been tested with Broadcom/Symantec PAM, 
@@ -47,7 +47,7 @@ reflect the real end-point name. When you open sessions to many
 different servers, you can clearly identify the RDP session by the name 
 of the real end-point connected to through the PAM server. 
 
-##Building the solution
+## Building the solution
 
 The programs uses
 - AutoHotKey v2 
@@ -59,7 +59,7 @@ tools are installed.
 
 The Python program (Windows service) requires that you install pyinstaller.
 
-Important
+***Important***<br>
 Before building and packaging the installer program, it is recommended that the 
 property files pam-rdp.system.properties and pam-rdp.user.properties are adapted 
 to you PAM environment. There are sample properties available for different PAM 
