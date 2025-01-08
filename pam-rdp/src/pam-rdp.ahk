@@ -14,7 +14,7 @@ global gSelfPidHex:= Format("{:04x}",gSelfPid)
 
 global gLockFilename:= A_Temp "\" gScriptName ".lock"
 global gLockHandle:= 0
-global gPipeName:= "PAM-RDP-CONNECT-SERVICE"
+global gPipeName:= "PAM-RDP-SERVICE"
 
 ;-------
 ; Constants
@@ -1591,7 +1591,7 @@ PipeMessage(msg, pipename:= "", timeout:= 10000) {
 			Buff:= Buffer(BUFF_SIZE,0)
 			StrPut(msg, Buff, "CP0")
 			
-			if (!DllCall("WriteFile", "Ptr",Pipe, "Ptr",buff, "UInt",(StrLen(msg)+1), "UInt*",0, "Ptr",0)) {
+			if (!DllCall("WriteFile", "Ptr",Pipe, "Ptr",buff, "UInt",(StrLen(msg)), "UInt*",0, "Ptr",0)) {
 				ErrorMessage:= "WriteFile failed, lastError= " A_LastError
 				logError(A_LineNumber, "PipeMessage: " ErrorMessage)
 				rc:= -3
@@ -1608,7 +1608,7 @@ PipeMessage(msg, pipename:= "", timeout:= 10000) {
 					rsp:= StrGet(StrPtr(Buff),"CP0")
 					logDebug(A_LineNumber, "PipeMessage: rsp= -->" rsp "<--")
 					;MsgBox( "Pipe - ReadFile`nbuff`n" buff "`nrsp`n" rsp)
-					if (rsp == "OK") {
+					if (InStr(rsp,"OK")==1) {
 						;logDebug(A_LineNumber, "PipeMessage: rsp= OK")
 						rc:= 1
 					} 
