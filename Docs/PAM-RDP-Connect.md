@@ -1,7 +1,4 @@
- PAM RDP Connect  body { font-family: Arial, sans-serif; } code, pre, .codelike { font-family: Courier New, monospace; } img {border-width:2px; border-style:solid; border-color:gray;} h1:before{ display: block; content: ''; margin-top: 10px; width: 50%; border-bottom: 3px solid #000; } h2 { margin-top: 60px; } h2:before{ display: block; content: ''; margin-top: 10px; width: 50%; border-bottom: 1px solid gray; } h3 { margin-top: 30px;}
-
-PAM RDP Connect
-===============
+# PAM RDP Connect
 
 **PAM RDP Connect** is used with PAM servers when connecting from a user's desktop through a PAM server to a Windows end-point. Depending on the PAM solution used, there are different ways to handle this.  
 With BeyondTrust Password Safe you download an `.rdp` file and use a local RDP client like `mstsc.exe`.  
@@ -32,10 +29,9 @@ The program may be available through a software distribution center in your orga
 
 After installation there are a few tweaks necessary to be done on your desktop.
 
-Post installation setup
------------------------
+## Post installation setup
 
-On a Windows desktop `.rdp` files are by default associated to run using the Windows Remote Desktop Connection client (`mstsc.exe` ). You must change the file association for `.rdp` to the **PAM RDP Connect** program `pam-rdp.exe`.
+On a Windows desktop `.rdp` files are by default associated to run using the Windows Remote Desktop Connection client (e.g. `mstsc.exe`). You must change the file association for `.rdp` to the **PAM RDP Connect** program `pam-rdp.exe`.
 
 You must make this change yourself.  
 It cannot reliably be changed during installation of **PAM RDP Connect**.
@@ -62,8 +58,7 @@ The default installation path is `C:\Program Files\PAM-Exchange\PAM-RDP-Connect.
 That's it.  
 When you now download an `.rdp` file from you PAM server, it will be associated to the **PAM RDP Connect** program `pam-rdp.exe`, some magic will happen, and you now see the correct server’s name in the RDP sessions connection bar and taskbar.
 
-Other settings
---------------
+## Other settings
 
 The basic installation will correct the server’s name in the RDP session connection bar and taskbar.  
 There are more settings, which you may choose to use or not to use. When **PAM RDP Connect** is installed the property file is found in the installation directory. The file `pam-rdp.user.properties` can be edited directly, and you must most likely have administrator privileges to save file. First time `pam-rdp.exe` is used or when edited using the configuration GUI utility, the property file is copied to the users %AppData% directory in the path `%AppData%\PAM-Exchange\PAM-RDP-Connect`.
@@ -126,18 +121,11 @@ FontSmoothing Enabled
 This setting will control if local drives (true disks or network connected) are seen as drives on the remote server.
 
 Typical values are:
-
-C:\\;K:\\;DynamicDrives
-
-\- Drives C:, K: and any drives later attached
-
-C:\\
-
-\- Just the C: drive
-
-\*
-
-\- All drives
+```
+C:\\;K:\\;DynamicDrives - Drives C:, K: and any drives later attached
+C:\\                    - Just the C: drive
+*                       - All drives
+```
 
 ### Cleanup downloaded RDP files when no longer used
 
@@ -153,14 +141,13 @@ This setting controls how many bits per pixel are used. Permitted values are 16,
 
 ### Prompt timeout
 
-Sometimes there are popup messages shown to the user. Typically, these will appear if there are errors in processing the downloaded .rdp file. Such popup messages can be acknowledged manually or the timeout will determine when it is closed automatically.
+Sometimes there are popup messages shown to the user. Typically, these will appear if there are errors in processing the downloaded `.rdp` file. Such popup messages can be acknowledged manually or the timeout will determine when it is closed automatically.
 
 ### Connection timeout
 
 This setting controls when the connection attempt is canceled. If the session is not established within the connection timeout, the connection attempt is aborted.
 
-Local drives vs. Remote Network Drives
---------------------------------------
+## Local drives vs. Remote Network Drives
 
 In the RDP session established, you may use local drive mapping as a mechanism to transfer files to/from the remote server. If local drive mapping is used, the local drives are available in `Network > tsclient`. When copying files to/from the mapped drive, the file copy is done through the RDP session. This is very useful for smaller files, but not for transferring large files.
 
@@ -171,14 +158,12 @@ If you need to copy large files to/from the remote server, it is recommended to 
 
 Keep in mind that the user accessing the remote server is not your regular user, but a user controlled by the PAM server. Alas, be sure that the login user (controlled by PAM) to the remote server has the necessary access permissions to the network share.
 
-Error handling
-==============
+## Error handling
 
 Errors do happen.  
 Some of the errors seen so far are outlined here and a description about how to correct it.
 
-Failed to authenticate to one or more factors
----------------------------------------------
+### Failed to authenticate to one or more factors
 
 For BeyondTrust Passwrod Safe an error is the message when opening a session through PAM is “Failed to authenticate to one or more factors”.
 
@@ -186,9 +171,9 @@ For BeyondTrust Passwrod Safe an error is the message when opening a session thr
 
 This can happen for many reasons. Some of these are:
 
-*   Direct connect is used from the PAM GUI
-*   There are old RDP Credentials for a server on the user’s desktop
-*   Browser cache on the user’s desktop must be cleared
+- Direct connect is used from the PAM GUI
+- There are old RDP Credentials for a server on the user’s desktop
+- Browser cache on the user’s desktop must be cleared
 
 ### Direct connect
 
@@ -215,8 +200,7 @@ Start Windows Credentials Manager and remove Windows Credentials for all servers
 
 It is seen that the browser cache play tricks when opening an RDP session through PAM. Try to remove the browser cache and see if this will mitigate the error.
 
-Cannot connect to remote computer
----------------------------------
+### Cannot connect to remote computer
 
 When connecting to a remote server through PAM, it may sometimes appear that the Windows server is not available. This is actually the PAM server itself that is not available and not the remote server. Connection to the remote server from PAM may also fail, but this is seen differently.
 
@@ -230,7 +214,7 @@ The error was rectified by inspecting the hosts file on the user’s desktop. Th
 
 Correcting this is done as follows:
 
-*   Stop the service “PAM-RDP-Connect Service”
-*   Delete the file “c:\\windows\\system32\\drivers\\etc\\hosts.backup”
-*   Open the hosts filen using Notepad++ or similar and save the file using ASCII or UTF-8 encoding.
-*   Start the service ”PAM-RDP-Connect Service”
+- Stop the service “PAM-RDP-Connect Service”
+- Delete the file “c:\\windows\\system32\\drivers\\etc\\hosts.backup”
+- Open the hosts filen using Notepad++ or similar and save the file using ASCII or UTF-8 encoding.
+- Start the service ”PAM-RDP-Connect Service”
