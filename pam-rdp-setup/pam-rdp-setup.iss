@@ -67,6 +67,7 @@ Name: "{group}\PAM RDP Connect - Documentation"; Filename: "{app}\Docs\{#MyAppEx
 
 [Run]
 Filename: "{app}\pam-rdp-service"; Parameters: "install"
+Filename: "C:\Windows\system32\sc.exe"; Parameters: "config pam-rdp-connect-service depend= lanmanworkstation start= delayed-auto"
 Filename: "{app}\pam-rdp-service"; Parameters: "start"
 
 [UninstallRun]
