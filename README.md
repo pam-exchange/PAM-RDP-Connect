@@ -47,6 +47,10 @@ the real end-point although the IP-address belongs to the PAM server.
 Important is that the RDP client is connected to an IP address with a 
 hostname of the real end-point server. The hostname of the real 
 end-point server is now shown in the connection bar.
+In addition to updating the desktop's `hosts` file an entry is 
+added to the registry, such that a hostname mismatch in the 
+end-point X509 certificate is ignored. Well, not really ignored, but 
+rather that the end-point hostname is a trusted end-point. 
 
 In most cases the security setup on Windows desktops
 will prevent a regular user of modifying the `hosts` file themself.
