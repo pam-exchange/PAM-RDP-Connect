@@ -6,23 +6,71 @@ Privileged Access Management server. The PAM server will be seen as the
 remote server end-point and the window title and connection bar (full 
 screen) will be the PAM server itself. If you only open one session at a 
 time, this is no big deal. However, if you open many sessions to 
-different end-points, the mstsc program will see them as being the same 
+different end-points, the RDP client sees them as being the same 
 end-point (the address of the PAM server). 
 
 ![PAM RDP Connect](/Docs/ConnectionBar-PamServer.png)
 
 
-The `pam-rdp.exe` program is a starter program for mstsc. It will change 
+The `pam-rdp.exe` program is a starter program for `mstsc`. It will change 
 hostname/address seen by the mstsc program to reflect the real 
 end-point, thus when opening multiple sessions to different end-points, 
 the window title and connection bar will identify the real end-point and 
 not just the PAM server. 
 
-See the [user documentation](/Docs/PAM-RDP-Connect.md) for details.
+## How it works
 
+PAM solutions in general will allow you to establish sessions
+to various types of end-points. Of interest here is RDP sessions
+to Windows systems. This is typically done by downloading an `.rdp`
+file from the PAM server and start a local RDP Client (`mstsc.exe`)
+using the downloaded `.rdp` file. The server used for the RDP session
+is mostly the hostname/IP-address to the PAM server. The username is 
+a shortlived one-time username, which the PAM server uses to map
+the session to the real Windows system. On the user's desktop the 
+server to which the RDP session is established to the PAM server and 
+not the real end-point server. This is why the connection bar 
+in `mstsc` is showing the PAM server as the connection server.
+
+When using PAM RDP Connect the program is in essense adding a new entry 
+in the user's `hosts` file. The new entry is 
+the IP-address of the PAM server with a hostname for the real
+end-point server. PAM RDP Connect will also change the downloaded `.rdp`
+file to use the real end-point as server. When `mstsc` is 
+using the `full address` entry in the .rdp file, it will first look 
+in the desktop's `hosts` file before using DNS to find the IP-address
+of the hostname. This is why a change in the hosts file can trick 
+the system to use the PAM server as when connecting to the hostname of
+the real end-point.
+Seen from `mstsc` the session is established to hostname belonging to 
+the real end-point although the IP-address belongs to the PAM server.
+Important is that the RDP client is connected to an IP address with a 
+hostname of the real end-point server. The hostname of the real 
+end-point server is now shown in the connection bar.
+
+In most cases the security setup on Windows desktops
+will prevent a regular user of modifying the `hosts` file themself.
+This is why there are two components of the PAM RDP Connect program.
+One compoent is a Windows Service and one component is a starter program for 
+`mstsc.exe`.
+
+The program `pam-rdp-service` is the Window service running
+in the context of the systems Local system Account. This user has
+the permissions to modify the `hosts` file and will listen commands 
+on a named pipe.
+
+The program `pam-rdp` is running in  user context with limited security
+permissions on the desktop. It does however have the permissions to 
+download and modify an `.rdp` file from the PAM server. The program will
+send a command to the pam-rdp-service via the named pipe. The commands 
+can be to add or remove an entry in the `hosts` file. 
+
+## Supported PAM servers
 
 The `pam-rdp.exe` starter program has been tested with Broadcom/Symantec PAM, 
 Senhasegura, CyberArk and Beyondtrust Password Safe. 
+
+See the [user documentation](/Docs/PAM-RDP-Connect.md) for details.
 
 When using Broadcom/Symantec PAM, the system will create loop-back 
 addresses for the endpoint you want to connect to. I.e. if you have 
