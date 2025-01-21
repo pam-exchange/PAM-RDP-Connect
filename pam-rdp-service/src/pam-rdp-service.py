@@ -285,7 +285,7 @@ class PAMRDPService(win32serviceutil.ServiceFramework):
     def add_to_registry(self, hostname):
         key = r"Software\Microsoft\Terminal Server Client\LocalDevices"
         reg_key = winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, key)
-        winreg.SetValueEx(reg_key, hostname, 0, winreg.REG_SZ, "1")
+        winreg.SetValueEx(reg_key, hostname, 0, winreg.REG_DWORD, 1)
         winreg.CloseKey(reg_key)
         self.logger.info(f"Added '{hostname}' to registry.")
 
