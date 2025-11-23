@@ -1,52 +1,40 @@
 # pam-rdp.system.properties
 
-Sample system properties for Senhasegura
+This file contains system-level settings for **PAM RDP Connect**. These settings are typically configured by an administrator and should not be modified by users.
+
+## Sample for Senhasegura
 
 ```
-; PAM-RDP System or installation properties
-; These settings are not to be modified by users
-; and are configured by the company hosting
-; the PAM servers
-
 [main]
-; Change the PAMtype to reflect the PAM server. 
-;PAMtype= BeyondTrustPasswordSafe
-;PAMtype= SymantecPAM
+; PAMtype specifies the PAM solution you are using.
+; Valid values are:
+;   - BeyondTrustPasswordSafe
+;   - SymantecPAM
+;   - Senhasegura
+;   - CyberArk
 PAMtype= Senhasegura
-;PAMtype= CyberArk
 
-
-; heartbeat is a program launched at the users desktop.
-; The program will send messages to open RDP session preventing
-; them from starting the screen saver on the server.
-; The users desktop screen saver i not affected.
-; Default is "false"
+; heartbeat is a program that prevents remote servers from starting
+; their screen savers.
 heartbeat= true
 
-; mstscProgram is the path and program name for the mstsc program.
+; mstscProgram is the path to the Microsoft RDP client.
 mstscProgram= c:\windows\system32\mstsc.exe
 
-; multiUser is a flag set to "true" when the service is running 
-; in multi-user environment (e.g. Citrix). If running on a 
-; multi-user environment, the connection hostnames are suffixed 
-; with the login username.
-; The default value is "false". 
+; multiUser should be set to "true" when running in a multi-user
+; environment like Citrix. This adds a username suffix to connection
+; hostnames to avoid conflicts.
 multiUser= false
 
-
 [Senhasegura]
-; The settings in this and subsequent settings are for 
-; Senhasegura
-
-; port is the port used when connecting the RDP client to PAM
+; port is the port used to connect to the PAM server.
 port= 3389
 
-; cntServer is the number of PAM servers for Senhasegura. 
-; Use just one (1) server or a load balancer in the [server1] configuration. 
+; cntServer is the number of PAM servers.
 cntServer= 1
 
-;-----------------------------------------
-; Senhasegura server
+; The following section specifies the IP address, DNS name, and hostname
+; for the server.
 [server1]
 ip= 192.168.242.101
 dns= senhase01.prod.pam-exchange.ch
