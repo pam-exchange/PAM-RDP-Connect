@@ -8,12 +8,21 @@ if exist %DIST% rmdir /S /Q %DIST%
 mkdir %DIST%
 
 rem
-rem Build pam-rdp from ahk source
+rem Build pam-rdp from python source
 rem
+set WORK=.\tmp
+if exist %WORK% rmdir /S /Q %WORK%
+mkdir %WORK%
+
+set PYOPTS=--noconfirm --onefile --icon "%SRC%\%NAME%.ico" --hidden-import=win32timezone --hidden-import=psutil --hidden-import=pywintypes --hidden-import=win32file --hidden-import=win32pipe --hidden-import=win32gui --hidden-import=win32process --hidden-import=win32con --hidden-import=win32api --distpath %DIST% --workpath %WORK%
 set SRC=.\pam-rdp\src
 set CFG=.\pam-rdp\config
 set NAME=pam-rdp
-"%AHK_HOME%\Compiler\ahk2exe.exe" /in "%SRC%\%NAME%.ahk" /out "%DIST%\%NAME%.exe" /icon "%SRC%\%NAME%.ico" /base "%AHK_HOME%\AutoHotkey64.exe" /compress 2
+
+pyinstaller %PYOPTS% %SRC%\%NAME%.py
+
+rmdir /S /Q %WORK%
+erase /Q /F %NAME%.spec
 
 rem
 rem Copy sample properties file
