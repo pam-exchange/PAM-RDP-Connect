@@ -1,6 +1,6 @@
 @echo off
 set AHK_HOME=C:\opt\AutoHotKey-v2
-set PY_HOME=C:\opt\Python313
+set GCC_HOME=C:\opt\w64devkit
 set INNO_HOME=C:\opt\InnoSetup-6.3.3
 
 set DIST=.\dist
@@ -18,7 +18,6 @@ set NAME=pam-rdp
 rem
 rem Copy sample properties file
 rem 
-rem copy /Y %CFG%\*.* %DIST%
 xcopy /S /I /Y %CFG%\*.* %DIST%
 
 rem
@@ -29,22 +28,20 @@ set NAME=pam-rdp-config
 "%AHK_HOME%\Compiler\ahk2exe.exe" /in "%SRC%\%NAME%.ahk" /out "%DIST%\%NAME%" /icon "%SRC%\%NAME%.ico" /base "%AHK_HOME%\AutoHotkey64.exe" /compress 2
 
 rem
-rem Build pam-rdp-service from python source
+rem Build pam-rdp-service from C source
 rem
-set WORK=.\tmp
-if exist %WORK% rmdir /S /Q %WORK%
-mkdir %WORK%
-
-set PYOPTS=--noconfirm --onefile --hidden-import=win32timezone --hidden-import=psutil --distpath %DIST% --workpath %WORK%
 set SRC=.\pam-rdp-service\src
 set CFG=.\pam-rdp-service\config
 set NAME=pam-rdp-service
 
-pyinstaller %PYOPTS% %SRC%\%NAME%.py
+if defined GCC_HOME set PATH=%GCC_HOME%\bin;%PATH%
+gcc -O2 -Wall -o "%DIST%\%NAME%.exe" "%SRC%\%NAME%.c" -ladvapi32 -lpsapi
+if %ERRORLEVEL% NEQ 0 (
+    echo Failed to compile %NAME%.c
+    exit /b %ERRORLEVEL%
+)
 
-rmdir /S /Q %WORK%
-erase /Q /F %NAME%.spec
-copy /Y %CFG%\%NAME%.properties %DIST%
+copy /Y "%CFG%\%NAME%.properties" "%DIST%"
 
 rem
 rem Copy documentation and other files 
@@ -68,4 +65,3 @@ if exist %NAME%.zip erase /Q /F %NAME%.zip
 cd %DIST%
 zip -r ..\%NAME%.zip *.*
 cd ..
-
