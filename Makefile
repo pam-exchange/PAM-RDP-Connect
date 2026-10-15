@@ -1,6 +1,6 @@
 # Makefile for PAM RDP Connect
 # Supports building binaries with auto-incrementing build version number,
-# creating pam-rdp-connect.zip and pam-rdp-connect-install-x.x.x.x.exe, installing, and uninstalling.
+# creating pam-rdp-connect-x.x.x.x.zip containing PAM-RDP-Connect-Install-x.x.x.x.exe, installing, and uninstalling.
 
 CC ?= gcc
 WINDRES ?= windres
@@ -22,7 +22,7 @@ SRC_PAM_CONFIG = pam-rdp-config/src
 SRC_PAM_SERVICE = pam-rdp-service/src
 CFG_PAM_SERVICE = pam-rdp-service/config
 
-.PHONY: all bump-version build package pam-rdp-connect.zip installer install uninstall clean
+.PHONY: all bump-version build package zip installer install uninstall clean
 
 all: package
 
@@ -58,13 +58,7 @@ copy-docs:
 	@cp -f version $(DIST_DIR)/ 2>/dev/null || true
 	@cp -f LICENSE $(DIST_DIR)/ 2>/dev/null || true
 
-# Target 1: pam-rdp-connect.zip (does NOT include installer executable)
-pam-rdp-connect.zip: build
-	@rm -f pam-rdp-connect.zip
-	@rm -f $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe $(DIST_DIR)/pam-rdp-connect-install-*.exe
-	@cd $(DIST_DIR) && $(ZIP) -r ../pam-rdp-connect.zip * -x "PAM-RDP-Connect-Install-*.exe" "pam-rdp-connect-install-*.exe"
-
-# Target 2: installer executable
+# Installer executable (Inno Setup)
 installer: build
 	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
 	if command -v $(ISCC) >/dev/null 2>&1; then \
@@ -73,25 +67,34 @@ installer: build
 		echo "ISCC (Inno Setup) not found. Skipping installer generation."; \
 	fi
 
-package: pam-rdp-connect.zip installer
+# Zip target: includes all files in dist/ including installer executable
+zip: installer
+	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
+	ZIP_NAME="pam-rdp-connect-$$VERSION_VAL.zip"; \
+	rm -f pam-rdp-connect-*.zip; \
+	cd $(DIST_DIR) && $(ZIP) -r ../$$ZIP_NAME *
 
-install: pam-rdp-connect.zip
-	@echo Installing PAM RDP Connect to "$(INSTALL_DIR)"...
-	@-if [ -f "$(INSTALL_DIR)/pam-rdp-service.exe" ]; then \
+package: zip
+
+install: package
+	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
+	ZIP_NAME="pam-rdp-connect-$$VERSION_VAL.zip"; \
+	echo Installing PAM RDP Connect to "$(INSTALL_DIR)"...; \
+	if [ -f "$(INSTALL_DIR)/pam-rdp-service.exe" ]; then \
 		"$(INSTALL_DIR)/pam-rdp-service.exe" stop 2>/dev/null || true; \
 		"$(INSTALL_DIR)/pam-rdp-service.exe" remove 2>/dev/null || true; \
-	fi
-	@mkdir -p "$(INSTALL_DIR)"
-	@if command -v $(UNZIP) >/dev/null 2>&1; then \
-		$(UNZIP) -o pam-rdp-connect.zip -d "$(INSTALL_DIR)"; \
+	fi; \
+	mkdir -p "$(INSTALL_DIR)"; \
+	if command -v $(UNZIP) >/dev/null 2>&1; then \
+		$(UNZIP) -o $$ZIP_NAME -d "$(INSTALL_DIR)"; \
 	else \
 		cp -rf $(DIST_DIR)/* "$(INSTALL_DIR)/"; \
-		rm -f "$(INSTALL_DIR)/PAM-RDP-Connect-Install-*.exe" "$(INSTALL_DIR)/pam-rdp-connect-install-*.exe"; \
-	fi
-	@"$(INSTALL_DIR)/pam-rdp-service.exe" install
-	@sc config pam-rdp-connect-service depend= lanmanworkstation start= delayed-auto 2>/dev/null || true
-	@"$(INSTALL_DIR)/pam-rdp-service.exe" start
-	@echo Installation completed successfully.
+	fi; \
+	rm -f "$(INSTALL_DIR)"/PAM-RDP-Connect-Install-*.exe "$(INSTALL_DIR)"/pam-rdp-connect-install-*.exe; \
+	"$(INSTALL_DIR)/pam-rdp-service.exe" install; \
+	sc config pam-rdp-connect-service depend= lanmanworkstation start= delayed-auto 2>/dev/null || true; \
+	"$(INSTALL_DIR)/pam-rdp-service.exe" start; \
+	echo Installation completed successfully.
 
 uninstall:
 	@echo Uninstalling PAM RDP Connect from "$(INSTALL_DIR)"...
@@ -103,4 +106,4 @@ uninstall:
 	@echo Uninstallation completed.
 
 clean:
-	@rm -rf $(DIST_DIR) $(TMP_DIR) *.spec pam-rdp-connect.zip
+	@rm -rf $(DIST_DIR) $(TMP_DIR) *.spec pam-rdp-connect-*.zip

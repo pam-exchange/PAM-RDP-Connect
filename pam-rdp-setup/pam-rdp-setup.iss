@@ -36,6 +36,11 @@ LicenseFile=..\dist\LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 ;PrivilegesRequired=lowest
 OutputBaseFilename=PAM-RDP-Connect-Install-{#MyAppVersion}
+VersionInfoVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription=PAM-RDP-Connect Setup
+VersionInfoCopyright=Copyright (c) 2024-2026 PAM-Exchange
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
