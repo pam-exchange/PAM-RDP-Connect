@@ -338,6 +338,7 @@ static void remove_from_hosts(const char *ip, const char *hostname) {
     newContent[0] = '\0';
     size_t newLen = 0;
 
+    size_t ipLen = strlen(ip);
     char *line = utf8Text;
     while (*line) {
         char *nextLine = strchr(line, '\n');
@@ -357,7 +358,8 @@ static void remove_from_hosts(const char *ip, const char *hostname) {
         while (*pTrim == ' ' || *pTrim == '\t') pTrim++;
 
         BOOL isMatch = FALSE;
-        if (_strnicmp(pTrim, ip, strlen(ip)) == 0) {
+        /* Exact word boundary check for IP */
+        if (_strnicmp(pTrim, ip, ipLen) == 0 && (isspace((unsigned char)pTrim[ipLen]) || pTrim[ipLen] == '\0')) {
             if (strstr(tempLine, hostname) != NULL) {
                 isMatch = TRUE;
             }
@@ -633,13 +635,13 @@ static void ServiceRun(void) {
 
     g_hCommandMutex = CreateMutex(NULL, FALSE, NULL);
 
-    OVERLAPPED overlapped;
-    ZeroMemory(&overlapped, sizeof(OVERLAPPED));
-    overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+    OVERLAPPED connectOverlapped;
+    ZeroMemory(&connectOverlapped, sizeof(OVERLAPPED));
+    connectOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
     HANDLE waitHandles[2];
     waitHandles[0] = g_hWaitStop;
-    waitHandles[1] = overlapped.hEvent;
+    waitHandles[1] = connectOverlapped.hEvent;
 
     while (TRUE) {
         LOG_DEBUG("create named pipe");
@@ -657,13 +659,19 @@ static void ServiceRun(void) {
             break;
         }
 
-        BOOL fConnected = ConnectNamedPipe(hPipe, &overlapped);
+        ResetEvent(connectOverlapped.hEvent);
+        connectOverlapped.Internal = 0;
+        connectOverlapped.InternalHigh = 0;
+        connectOverlapped.Offset = 0;
+        connectOverlapped.OffsetHigh = 0;
+
+        BOOL fConnected = ConnectNamedPipe(hPipe, &connectOverlapped);
         DWORD dwErr = GetLastError();
 
         if (!fConnected) {
             if (dwErr == ERROR_PIPE_CONNECTED) {
                 LOG_DEBUG("Client is fast, hr= %lu", dwErr);
-                SetEvent(overlapped.hEvent);
+                SetEvent(connectOverlapped.hEvent);
             } else if (dwErr != ERROR_IO_PENDING) {
                 LOG_DEBUG("Error connecting pipe, error=%lu", dwErr);
                 CloseHandle(hPipe);
@@ -680,7 +688,6 @@ static void ServiceRun(void) {
             break;
         } else if (dwWait == WAIT_OBJECT_0 + 1) {
             LOG_DEBUG("Pipe event received");
-            ResetEvent(overlapped.hEvent);
 
             char inBuffer[65536] = {0};
             DWORD cbRead = 0;
@@ -691,7 +698,18 @@ static void ServiceRun(void) {
 
             BOOL fRead = ReadFile(hPipe, inBuffer, sizeof(inBuffer) - 1, &cbRead, &readOverlapped);
             if (!fRead && GetLastError() == ERROR_IO_PENDING) {
-                fRead = GetOverlappedResult(hPipe, &readOverlapped, &cbRead, TRUE);
+                HANDLE readWaitHandles[2] = { g_hWaitStop, readOverlapped.hEvent };
+                DWORD dwReadWait = WaitForMultipleObjects(2, readWaitHandles, FALSE, INFINITE);
+                if (dwReadWait == WAIT_OBJECT_0) {
+                    LOG_DEBUG("Stop event received during ReadFile");
+                    CancelIoEx(hPipe, &readOverlapped);
+                    CloseHandle(readOverlapped.hEvent);
+                    DisconnectNamedPipe(hPipe);
+                    CloseHandle(hPipe);
+                    break;
+                } else {
+                    fRead = GetOverlappedResult(hPipe, &readOverlapped, &cbRead, FALSE);
+                }
             }
             CloseHandle(readOverlapped.hEvent);
 
@@ -736,7 +754,7 @@ static void ServiceRun(void) {
         }
     }
 
-    if (overlapped.hEvent) CloseHandle(overlapped.hEvent);
+    if (connectOverlapped.hEvent) CloseHandle(connectOverlapped.hEvent);
     if (g_hCommandMutex) CloseHandle(g_hCommandMutex);
     FreePipeSecurityObject(pSA, pDacl);
 }
