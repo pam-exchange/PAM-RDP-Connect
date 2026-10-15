@@ -1,5 +1,4 @@
 @echo off
-set AHK_HOME=C:\opt\AutoHotKey-v2
 set PY_HOME=C:\opt\Python313
 set GCC_HOME=C:\opt\w64devkit
 set INNO_HOME=C:\opt\InnoSetup-6.3.3
@@ -37,11 +36,24 @@ rem
 xcopy /S /I /Y %CFG%\*.* %DIST%
 
 rem
-rem Build pam-rdp-config from ahk source
+rem Build pam-rdp-config from python source
 rem
+set WORK=.\tmp
+if exist %WORK% rmdir /S /Q %WORK%
+mkdir %WORK%
+
+set PYOPTS=--noconfirm --onefile --noconsole --distpath %DIST% --workpath %WORK%
 set SRC=.\pam-rdp-config\src
 set NAME=pam-rdp-config
-"%AHK_HOME%\Compiler\ahk2exe.exe" /in "%SRC%\%NAME%.ahk" /out "%DIST%\%NAME%" /icon "%SRC%\%NAME%.ico" /base "%AHK_HOME%\AutoHotkey64.exe" /compress 2
+
+pyinstaller %PYOPTS% --icon="%SRC%\%NAME%.ico" %SRC%\%NAME%.py
+if %ERRORLEVEL% NEQ 0 (
+    echo Failed to compile %NAME%.py
+    exit /b %ERRORLEVEL%
+)
+
+rmdir /S /Q %WORK%
+if exist %NAME%.spec erase /Q /F %NAME%.spec
 
 rem
 rem Build pam-rdp-service from C source

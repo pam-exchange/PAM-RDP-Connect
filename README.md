@@ -102,7 +102,6 @@ of the real end-point connected to through the PAM server.
 ## Building the solution
 
 The programs uses
-- AutoHotKey v2 
 - Python 3.13 (PyInstaller)
 - C compiler (e.g. GCC / MinGW)
 - Inno Setup 6.3.3
@@ -116,7 +115,7 @@ property files `pam-rdp.system.properties` and `pam-rdp.user.properties` are ada
 to you PAM environment. There are sample properties available for different PAM 
 solutions.
 
-Run the build.cmd and it will compile and package the AutoHotKey scripts, Python scripts, and C source
+Run the build.cmd and it will compile and package the Python scripts and C source
 into executables. Users do not have to install any additional software on their desktops.
 
 After successful build the directory ./dist will include the files. They are also 
