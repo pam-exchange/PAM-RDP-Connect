@@ -21,7 +21,7 @@ set SRC=.\pam-rdp\src
 set CFG=.\pam-rdp\config
 set NAME=pam-rdp
 
-pyinstaller %PYOPTS% --icon="%SRC%\%NAME%.ico" %SRC%\%NAME%.py
+pyinstaller %PYOPTS% --icon="%SRC%\%NAME%.ico" --version-file="%SRC%\%NAME%-version.txt" %SRC%\%NAME%.py
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to compile %NAME%.py
     exit /b %ERRORLEVEL%
@@ -46,7 +46,7 @@ set PYOPTS=--noconfirm --onefile --noconsole --distpath %DIST% --workpath %WORK%
 set SRC=.\pam-rdp-config\src
 set NAME=pam-rdp-config
 
-pyinstaller %PYOPTS% --icon="%SRC%\%NAME%.ico" %SRC%\%NAME%.py
+pyinstaller %PYOPTS% --icon="%SRC%\%NAME%.ico" --version-file="%SRC%\%NAME%-version.txt" %SRC%\%NAME%.py
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to compile %NAME%.py
     exit /b %ERRORLEVEL%
@@ -58,17 +58,24 @@ if exist %NAME%.spec erase /Q /F %NAME%.spec
 rem
 rem Build pam-rdp-service from C source
 rem
+set WORK=.\tmp
+if exist %WORK% rmdir /S /Q %WORK%
+mkdir %WORK%
+
 set SRC=.\pam-rdp-service\src
 set CFG=.\pam-rdp-service\config
 set NAME=pam-rdp-service
 
 if defined GCC_HOME set PATH=%GCC_HOME%\bin;%PATH%
-gcc -O2 -Wall -o "%DIST%\%NAME%.exe" "%SRC%\%NAME%.c" -ladvapi32 -lpsapi
+
+windres "%SRC%\%NAME%.rc" -O coff -o "%WORK%\%NAME%.res"
+gcc -O2 -Wall -o "%DIST%\%NAME%.exe" "%SRC%\%NAME%.c" "%WORK%\%NAME%.res" -ladvapi32 -lpsapi
 if %ERRORLEVEL% NEQ 0 (
     echo Failed to compile %NAME%.c
     exit /b %ERRORLEVEL%
 )
 
+rmdir /S /Q %WORK%
 copy /Y "%CFG%\%NAME%.properties" "%DIST%"
 
 rem
