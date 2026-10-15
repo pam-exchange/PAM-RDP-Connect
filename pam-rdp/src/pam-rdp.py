@@ -53,7 +53,20 @@ except ImportError:
     win32api = None
     pywintypes = None
 
-gVersion = "2.9.0"
+def get_app_version():
+    try:
+        script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+        vfile = os.path.join(script_dir, "version")
+        if os.path.exists(vfile):
+            with open(vfile, "r", encoding="utf-8") as f:
+                v = f.read().strip()
+                if v:
+                    return v
+    except Exception:
+        pass
+    return "2.9.0.0"
+
+gVersion = get_app_version()
 gProgramTitle = "PAM RDP Connect"
 
 gSelfPid = os.getpid()

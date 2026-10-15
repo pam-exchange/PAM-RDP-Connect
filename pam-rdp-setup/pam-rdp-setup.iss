@@ -2,7 +2,9 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "PAM-RDP-Connect"
-#define MyAppVersion "2.9"
+#ifndef MyAppVersion
+#define MyAppVersion "2.9.0.0"
+#endif
 #define MyAppPublisher "PAM-Exchange"
 #define MyAppURL "https://github.com/PAM-Exchange"
 #define MyAppExeName "pam-rdp-service.exe"

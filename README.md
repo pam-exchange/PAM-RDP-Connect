@@ -101,27 +101,63 @@ of the real end-point connected to through the PAM server.
 
 ## Building the solution
 
-The programs uses
-- Python 3.13 (PyInstaller)
-- C compiler (e.g. GCC / MinGW)
-- Inno Setup 6.3.3
+### Toolchain
 
-Edit the command file build.cmd and change the paths for where the 
-tools are installed.
+The solution is built using standard tools and compilers:
+- **Python 3.13** with **PyInstaller** (`pyinstaller`) for compiling `pam-rdp.exe` and `pam-rdp-config.exe`.
+- **C Compiler & Resource Compiler** (`gcc` and `windres` via MinGW/GCC) for compiling `pam-rdp-service.exe`.
+- **Inno Setup 6.3.3** (`ISCC.exe`) for compiling the Windows installer package (`PAM-RDP-Connect-Install-*.exe`).
+- **GNU Make** (`make`) and **Zip** utilities (`zip` / `unzip`) for build automation and packaging.
+
+### Environment Variables & Customization
+
+The build process uses `Makefile` variables that can be overridden via command-line arguments or environment variables:
+
+| Variable | Default Value | Description |
+| :--- | :--- | :--- |
+| `CC` | `gcc` | C compiler command for `pam-rdp-service` |
+| `WINDRES` | `windres` | Windows resource compiler command for embedding executable metadata |
+| `PYTHON` | `python3` | Python interpreter executable |
+| `PYINSTALLER` | `pyinstaller` | PyInstaller executable |
+| `ISCC` | `ISCC.exe` | Inno Setup compiler command |
+| `INSTALL_DIR` | `C:\Program Files\PAM-Exchange\PAM-RDP-Connect` | Target directory for local service installation |
+
+### Build Instructions
 
 ***Important***<br>
 Before building and packaging the installer program, it is recommended that the 
 property files `pam-rdp.system.properties` and `pam-rdp.user.properties` are adapted 
-to you PAM environment. There are sample properties available for different PAM 
-solutions.
+to your PAM environment. Sample property files are provided in `pam-rdp/config`.
 
-Run the build.cmd and it will compile and package the Python scripts and C source
-into executables. Users do not have to install any additional software on their desktops.
+#### 1. Compile Executables
+To automatically increment the build version number in the `version` file (e.g. `2.9.0.x`), update version resource metadata, and compile all executables into `./dist`:
+```cmd
+make build
+```
 
-After successful build the directory ./dist will include the files. They are also 
-packaged into a single zip-file.
-It is sufficient to use the PAM-RDP-Connect-Install-2.9.exe installer program on
-user's desktop.
+#### 2. Create Packaging Artifacts
+To generate both `pam-rdp-connect.zip` (excluding the installer `.exe`) and the Inno Setup installer executable (`PAM-RDP-Connect-Install-2.9.0.x.exe`):
+```cmd
+make package
+```
+
+#### 3. Install to Desktop / Endpoint
+To copy/unzip the built binaries to `C:\Program Files\PAM-Exchange\PAM-RDP-Connect`, register and configure `pam-rdp-connect-service` with service dependencies (`depend= lanmanworkstation start= delayed-auto`), and start the service:
+```cmd
+make install
+```
+
+#### 4. Uninstall
+To stop and unregister the service and remove installed files:
+```cmd
+make uninstall
+```
+
+#### 5. Clean Build Artifacts
+To clean up temporary working files and the `./dist` directory:
+```cmd
+make clean
+```
 
 ## Configuration
 

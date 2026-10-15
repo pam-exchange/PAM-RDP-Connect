@@ -1,15 +1,15 @@
 # Makefile for PAM RDP Connect
-# Supports building binaries, creating pam-rdp-connect.zip and pam-rdp-connect-install-x.x.exe, installing, and uninstalling.
+# Supports building binaries with auto-incrementing build version number,
+# creating pam-rdp-connect.zip and pam-rdp-connect-install-x.x.x.x.exe, installing, and uninstalling.
 
 CC ?= gcc
 WINDRES ?= windres
-PYTHON ?= python
+PYTHON ?= python3
 PYINSTALLER ?= pyinstaller
 ZIP ?= zip
 UNZIP ?= unzip
 ISCC ?= ISCC.exe
 
-VERSION ?= $(shell cat version 2>/dev/null || echo 2.9)
 INSTALL_DIR ?= C:\Program Files\PAM-Exchange\PAM-RDP-Connect
 DIST_DIR = dist
 TMP_DIR = tmp
@@ -22,14 +22,14 @@ SRC_PAM_CONFIG = pam-rdp-config/src
 SRC_PAM_SERVICE = pam-rdp-service/src
 CFG_PAM_SERVICE = pam-rdp-service/config
 
-ZIP_FILE = pam-rdp-connect.zip
-INSTALLER_FILE = PAM-RDP-Connect-Install-$(VERSION).exe
-
-.PHONY: all build package pam-rdp-connect.zip installer install uninstall clean
+.PHONY: all bump-version build package pam-rdp-connect.zip installer install uninstall clean
 
 all: package
 
-build: $(DIST_DIR)/pam-rdp.exe $(DIST_DIR)/pam-rdp-config.exe $(DIST_DIR)/pam-rdp-service.exe copy-config copy-docs
+bump-version:
+	@$(PYTHON) -c "import os; v = open('version').read().strip() if os.path.exists('version') else '2.9.0'; parts = v.split('.'); parts = parts[:3] + [str(int(parts[3]) + 1)] if len(parts) >= 4 else parts[:3] + ['1'] if len(parts) == 3 else ['2', '9', '0', '1']; new_v = '.'.join(parts); open('version', 'w').write(new_v + '\n'); print(f'Build version: {new_v}'); v_tuple = tuple(int(p) for p in parts[:4]); rc_content = f'#include <windows.h>\n\nVS_VERSION_INFO VERSIONINFO\nFILEVERSION    {v_tuple[0]},{v_tuple[1]},{v_tuple[2]},{v_tuple[3]}\nPRODUCTVERSION {v_tuple[0]},{v_tuple[1]},{v_tuple[2]},{v_tuple[3]}\nFILEFLAGSMASK  0x3fL\n#ifdef _DEBUG\nFILEFLAGS      0x1L\n#else\nFILEFLAGS      0x0L\n#endif\nFILEOS         0x40004L\nFILETYPE       0x1L\nFILESUBTYPE    0x0L\nBEGIN\n    BLOCK \"StringFileInfo\"\n    BEGIN\n        BLOCK \"040904b0\"\n        BEGIN\n            VALUE \"CompanyName\",      \"PAM-Exchange\"\n            VALUE \"FileDescription\",  \"PAM-RDP-Connect Service\"\n            VALUE \"FileVersion\",      \"{new_v}\"\n            VALUE \"InternalName\",     \"pam-rdp-service\"\n            VALUE \"LegalCopyright\",   \"Copyright (c) 2024-2026 PAM-Exchange\"\n            VALUE \"OriginalFilename\", \"pam-rdp-service.exe\"\n            VALUE \"ProductName\",      \"PAM RDP Connect\"\n            VALUE \"ProductVersion\",   \"{new_v}\"\n        END\n    END\n    BLOCK \"VarFileInfo\"\n    BEGIN\n        VALUE \"Translation\", 0x0409, 1200\n    END\nEND\n'; open('pam-rdp-service/src/pam-rdp-service.rc', 'w').write(rc_content); ver_txt_1 = f'# UTF-8\nVSVersionInfo(\n  ffi=FixedFileInfo(\n    filevers={v_tuple},\n    prodvers={v_tuple},\n    mask=0x3f,\n    flags=0x0,\n    OS=0x40004,\n    fileType=0x1,\n    subtype=0x0,\n    date=(0, 0)\n  ),\n  kids=[\n    StringFileInfo(\n      [\n        StringTable(\n          \'040904B0\',\n          [\n            StringStruct(\'CompanyName\', \'PAM-Exchange\'),\n            StringStruct(\'FileDescription\', \'PAM RDP Connect Application\'),\n            StringStruct(\'FileVersion\', \'{new_v}\'),\n            StringStruct(\'InternalName\', \'pam-rdp\'),\n            StringStruct(\'LegalCopyright\', \'Copyright (c) 2024-2026 PAM-Exchange\'),\n            StringStruct(\'OriginalFilename\', \'pam-rdp.exe\'),\n            StringStruct(\'ProductName\', \'PAM RDP Connect\'),\n            StringStruct(\'ProductVersion\', \'{new_v}\')\n          ]\n        )\n      ]\n    ),\n    VarFileInfo([VarStruct(\'Translation\', [1033, 1200])])\n  ]\n)\n'; open('pam-rdp/src/pam-rdp-version.txt', 'w').write(ver_txt_1); ver_txt_2 = f'# UTF-8\nVSVersionInfo(\n  ffi=FixedFileInfo(\n    filevers={v_tuple},\n    prodvers={v_tuple},\n    mask=0x3f,\n    flags=0x0,\n    OS=0x40004,\n    fileType=0x1,\n    subtype=0x0,\n    date=(0, 0)\n  ),\n  kids=[\n    StringFileInfo(\n      [\n        StringTable(\n          \'040904B0\',\n          [\n            StringStruct(\'CompanyName\', \'PAM-Exchange\'),\n            StringStruct(\'FileDescription\', \'PAM RDP Connect Configuration GUI\'),\n            StringStruct(\'FileVersion\', \'{new_v}\'),\n            StringStruct(\'InternalName\', \'pam-rdp-config\'),\n            StringStruct(\'LegalCopyright\', \'Copyright (c) 2024-2026 PAM-Exchange\'),\n            StringStruct(\'OriginalFilename\', \'pam-rdp-config.exe\'),\n            StringStruct(\'ProductName\', \'PAM RDP Connect Configuration\'),\n            StringStruct(\'ProductVersion\', \'{new_v}\')\n          ]\n        )\n      ]\n    ),\n    VarFileInfo([VarStruct(\'Translation\', [1033, 1200])])\n  ]\n)\n'; open('pam-rdp-config/src/pam-rdp-config-version.txt', 'w').write(ver_txt_2)"
+
+build: bump-version $(DIST_DIR)/pam-rdp.exe $(DIST_DIR)/pam-rdp-config.exe $(DIST_DIR)/pam-rdp-service.exe copy-config copy-docs
 
 $(DIST_DIR)/pam-rdp.exe: $(SRC_PAM_RDP)/pam-rdp.py $(SRC_PAM_RDP)/pam-rdp-version.txt
 	@mkdir -p $(DIST_DIR) $(TMP_DIR)
@@ -60,16 +60,15 @@ copy-docs:
 
 # Target 1: pam-rdp-connect.zip (does NOT include installer executable)
 pam-rdp-connect.zip: build
-	@rm -f $(ZIP_FILE)
+	@rm -f pam-rdp-connect.zip
 	@rm -f $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe $(DIST_DIR)/pam-rdp-connect-install-*.exe
-	@cd $(DIST_DIR) && $(ZIP) -r ../$(ZIP_FILE) * -x "PAM-RDP-Connect-Install-*.exe" "pam-rdp-connect-install-*.exe"
+	@cd $(DIST_DIR) && $(ZIP) -r ../pam-rdp-connect.zip * -x "PAM-RDP-Connect-Install-*.exe" "pam-rdp-connect-install-*.exe"
 
 # Target 2: installer executable
-installer: $(INSTALLER_FILE)
-
-$(INSTALLER_FILE): build
-	@if command -v $(ISCC) >/dev/null 2>&1; then \
-		$(ISCC) /O. pam-rdp-setup/pam-rdp-setup.iss; \
+installer: build
+	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
+	if command -v $(ISCC) >/dev/null 2>&1; then \
+		$(ISCC) /DMyAppVersion=$$VERSION_VAL /O$(DIST_DIR) pam-rdp-setup/pam-rdp-setup.iss; \
 	else \
 		echo "ISCC (Inno Setup) not found. Skipping installer generation."; \
 	fi
@@ -84,7 +83,7 @@ install: pam-rdp-connect.zip
 	fi
 	@mkdir -p "$(INSTALL_DIR)"
 	@if command -v $(UNZIP) >/dev/null 2>&1; then \
-		$(UNZIP) -o $(ZIP_FILE) -d "$(INSTALL_DIR)"; \
+		$(UNZIP) -o pam-rdp-connect.zip -d "$(INSTALL_DIR)"; \
 	else \
 		cp -rf $(DIST_DIR)/* "$(INSTALL_DIR)/"; \
 		rm -f "$(INSTALL_DIR)/PAM-RDP-Connect-Install-*.exe" "$(INSTALL_DIR)/pam-rdp-connect-install-*.exe"; \
@@ -104,4 +103,4 @@ uninstall:
 	@echo Uninstallation completed.
 
 clean:
-	@rm -rf $(DIST_DIR) $(TMP_DIR) *.spec $(ZIP_FILE)
+	@rm -rf $(DIST_DIR) $(TMP_DIR) *.spec pam-rdp-connect.zip
