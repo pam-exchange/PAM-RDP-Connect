@@ -23,7 +23,7 @@ SRC_PAM_SERVICE = pam-rdp-service/src
 CFG_PAM_SERVICE = pam-rdp-service/config
 
 ZIP_FILE = pam-rdp-connect.zip
-INSTALLER_FILE = $(DIST_DIR)/PAM-RDP-Connect-Install-$(VERSION).exe
+INSTALLER_FILE = PAM-RDP-Connect-Install-$(VERSION).exe
 
 .PHONY: all build package pam-rdp-connect.zip installer install uninstall clean
 
@@ -69,7 +69,7 @@ installer: $(INSTALLER_FILE)
 
 $(INSTALLER_FILE): build
 	@if command -v $(ISCC) >/dev/null 2>&1; then \
-		$(ISCC) /O$(DIST_DIR) pam-rdp-setup/pam-rdp-setup.iss; \
+		$(ISCC) /O. pam-rdp-setup/pam-rdp-setup.iss; \
 	else \
 		echo "ISCC (Inno Setup) not found. Skipping installer generation."; \
 	fi
