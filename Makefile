@@ -8,7 +8,7 @@ PYTHON ?= python
 PYINSTALLER ?= pyinstaller
 ZIP ?= zip
 UNZIP ?= unzip
-ISCC ?= ISCC.exe
+ISCC ?= ISCC.exe 
 
 INSTALL_DIR ?= C:\Program Files\PAM-Exchange\PAM-RDP-Connect
 DIST_DIR = dist
