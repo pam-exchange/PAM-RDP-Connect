@@ -16,7 +16,7 @@ This is where **PAM RDP Connect** comes into play.
 
 What you really want is that the endpoint hostname to be visible in the connection bar and not the hostname/address of the PAM server.
 
-![](./ConnectionBar-End-point.png)
+![](./ConnectionBar-Endpoint.png)
 
 **PAM RDP Connect** is a pre-processing utility for the downloaded `.rdp` file. It will tweak the setting in the `.rdp` file, such that it seems that the connection is established to the real endpoint even though it is connecting to the PAM server. It will also launch `mstsc` using the modified `.rdp` file. From a users' point of view, the session established is to the correct endpoint.
 
