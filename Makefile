@@ -1,10 +1,10 @@
 # Makefile for PAM RDP Connect
 # Supports building binaries with auto-incrementing build version number,
-# creating pam-rdp-connect-x.x.x.x.zip containing PAM-RDP-Connect-Install-x.x.x.x.exe, installing, and uninstalling.
+# creating PAM-RDP-Connect-x.x.x.x.zip containing PAM-RDP-Connect-Install-x.x.x.x.exe, installing, and uninstalling.
 
 CC ?= gcc
 WINDRES ?= windres
-PYTHON ?= python3
+PYTHON ?= python
 PYINSTALLER ?= pyinstaller
 ZIP ?= zip
 UNZIP ?= unzip
@@ -70,15 +70,15 @@ installer: build
 # Zip target: includes all files in dist/ including installer executable
 zip: installer
 	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
-	ZIP_NAME="pam-rdp-connect-$$VERSION_VAL.zip"; \
-	rm -f pam-rdp-connect-*.zip; \
+	ZIP_NAME="PAM-RDP-Connect-$$VERSION_VAL.zip"; \
+	rm -f PAM-RDP-Connect-*.zip; \
 	cd $(DIST_DIR) && $(ZIP) -r ../$$ZIP_NAME *
 
 package: zip
 
 install: package
 	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
-	ZIP_NAME="pam-rdp-connect-$$VERSION_VAL.zip"; \
+	ZIP_NAME="PAM-RDP-Connect-$$VERSION_VAL.zip"; \
 	echo Installing PAM RDP Connect to "$(INSTALL_DIR)"...; \
 	if [ -f "$(INSTALL_DIR)/pam-rdp-service.exe" ]; then \
 		"$(INSTALL_DIR)/pam-rdp-service.exe" stop 2>/dev/null || true; \
@@ -90,7 +90,7 @@ install: package
 	else \
 		cp -rf $(DIST_DIR)/* "$(INSTALL_DIR)/"; \
 	fi; \
-	rm -f "$(INSTALL_DIR)"/PAM-RDP-Connect-Install-*.exe "$(INSTALL_DIR)"/pam-rdp-connect-install-*.exe; \
+	rm -f "$(INSTALL_DIR)"/PAM-RDP-Connect-Install-*.exe "$(INSTALL_DIR)"/PAM-RDP-Connect-install-*.exe; \
 	"$(INSTALL_DIR)/pam-rdp-service.exe" install; \
 	sc config pam-rdp-connect-service depend= lanmanworkstation start= delayed-auto 2>/dev/null || true; \
 	"$(INSTALL_DIR)/pam-rdp-service.exe" start; \
@@ -106,4 +106,4 @@ uninstall:
 	@echo Uninstallation completed.
 
 clean:
-	@rm -rf $(DIST_DIR) $(TMP_DIR) *.spec pam-rdp-connect-*.zip
+	@rm -rf $(DIST_DIR) $(TMP_DIR) *.spec PAM-RDP-Connect-*.zip
