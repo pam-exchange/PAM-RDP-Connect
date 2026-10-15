@@ -21,7 +21,7 @@ BEGIN
             VALUE "FileDescription",  "PAM-RDP-Connect Service"
             VALUE "FileVersion",      "2.9.0.0"
             VALUE "InternalName",     "pam-rdp-service"
-            VALUE "LegalCopyright",   "Copyright (c) 2024-2025 PAM-Exchange"
+            VALUE "LegalCopyright",   "Copyright (c) 2024-2026 PAM-Exchange"
             VALUE "OriginalFilename", "pam-rdp-service.exe"
             VALUE "ProductName",      "PAM RDP Connect"
             VALUE "ProductVersion",   "2.9.0.0"

@@ -1,7 +1,7 @@
 '''
 MIT License
 
-Copyright (c) 2024-2025 PAM-Exchange
+Copyright (c) 2024-2026 PAM-Exchange
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -471,7 +471,7 @@ class PamRdpConfigApp:
             "The program is used to update the settings a user can or should modify. System settings must be updated using a standard text editor. System settings includes the addresses of PAM servers.\n\n"
             "The default user's configuration is loaded from the users %AppData% directory. If a property file is not found, the property file from the installation location is used. When saving the file, it is recommended to use the default location suggested. This is where the PAM-RDP-Connect program will read the properties from.\n\n"
             f"Version {gVersion}\n"
-            "Copyright ©2020-2024 Columbus A/S"
+            "Copyright (c) 2024-2026 PAM-Exchange"
         )
         messagebox.showinfo(gProgramTitle, guide)
 
@@ -481,7 +481,7 @@ class PamRdpConfigApp:
             "----------------------------------\n\n"
             "PAM-RDP-Connect Configuration is used to update the user's properties file for PAM-RDP-Connect.\n\n"
             f"Version {gVersion}\n"
-            "Copyright ©2020-2024 Columbus A/S"
+            "Copyright (c) 2024-2026 PAM-Exchange"
         )
         messagebox.showinfo(gProgramTitle, about)
 
