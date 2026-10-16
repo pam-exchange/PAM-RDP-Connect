@@ -1,6 +1,7 @@
 # Makefile for PAM RDP Connect
 # Supports building binaries with auto-incrementing build version number,
-# creating pam-rdp-connect-x.x.x.x.zip containing PAM-RDP-Connect-Install-x.x.x.x.exe, installing, and uninstalling.
+# creating pam-rdp-connect-x.x.x.x.zip containing PAM-RDP-Connect-Install-x.x.x.x.exe,
+# PAM-RDP-Connect-Source-x.x.x.x.zip containing source files, installing, and uninstalling.
 
 CC ?= gcc
 WINDRES ?= windres
@@ -22,7 +23,7 @@ SRC_PAM_CONFIG = pam-rdp-config/src
 SRC_PAM_SERVICE = pam-rdp-service/src
 CFG_PAM_SERVICE = pam-rdp-service/config
 
-.PHONY: all bump-version build package zip installer install uninstall clean
+.PHONY: all bump-version build package zip source-zip installer install uninstall clean
 
 all: package
 
@@ -74,7 +75,14 @@ zip: installer
 	ZIP_NAME="PAM-RDP-Connect-$$VERSION_VAL.zip"; \
 	cd $(DIST_DIR) && $(ZIP) -r ../$$ZIP_NAME *
 
-package: zip
+# Source zip target: creates PAM-RDP-Connect-Source-<version>.zip containing source directories and files
+source-zip: build
+	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
+	SRC_ZIP_NAME="PAM-RDP-Connect-Source-$$VERSION_VAL.zip"; \
+	rm -f $$SRC_ZIP_NAME; \
+	$(ZIP) -r $$SRC_ZIP_NAME Docs pam-rdp pam-rdp-config pam-rdp-service pam-rdp-setup build.cmd LICENSE Makefile README.md version
+
+package: zip source-zip
 
 install: package
 	@VERSION_VAL=$$(cat version | tr -d '\r\n'); \
