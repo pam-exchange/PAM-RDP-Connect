@@ -1,8 +1,8 @@
 #include <windows.h>
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION    3,0,0,18
-PRODUCTVERSION 3,0,0,18
+FILEVERSION    3,0,0,24
+PRODUCTVERSION 3,0,0,24
 FILEFLAGSMASK  0x3fL
 #ifdef _DEBUG
 FILEFLAGS      0x1L
@@ -19,12 +19,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "PAM-Exchange"
             VALUE "FileDescription",  "PAM-RDP-Connect Service"
-            VALUE "FileVersion",      "3.0.0.18"
+            VALUE "FileVersion",      "3.0.0.24"
             VALUE "InternalName",     "pam-rdp-service"
             VALUE "LegalCopyright",   "Copyright (c) 2024-2026 PAM-Exchange"
             VALUE "OriginalFilename", "pam-rdp-service.exe"
             VALUE "ProductName",      "PAM RDP Connect"
-            VALUE "ProductVersion",   "3.0.0.18"
+            VALUE "ProductVersion",   "3.0.0.24"
         END
     END
     BLOCK "VarFileInfo"

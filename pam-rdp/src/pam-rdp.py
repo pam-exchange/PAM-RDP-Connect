@@ -559,9 +559,9 @@ def read_properties(filename, p_type=0, settings=None):
             hostname = config.get(sec, "hostname", fallback="ERROR")
             if "ERROR" not in (ip, dns, hostname):
                 pam_info.extend([ip, dns, hostname])
-                log_debug(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, ip= {ip}, dns= {dns}, hostname= {hostname}")
+                log_debug(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
             else:
-                log_error(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, ip= {ip}, dns= {dns}, hostname= {hostname}")
+                log_error(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
 
         settings.PamInfo = pam_info
 
@@ -592,7 +592,8 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
         log_error(sys._getframe().f_lineno, f"CloneRdpFile: {ErrorMessage}, error={e}")
         return -1, ""
 
-    log_trace(sys._getframe().f_lineno, f"CloneRdpFile: Original content\n{content}")
+    content = content.replace("\r\n", "\n").replace("\n\n", "\n") + "\n"
+    
 
     if gSettings.UseFontSmoothingDefined:
         f_val = "1" if gSettings.UseFontSmoothing else "0"
@@ -698,6 +699,8 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
             content += f"username:s:{username}\n"
 
     content = content.replace("\r\n", "\n").replace("\n\n", "\n") + "\n"
+
+    log_trace(sys._getframe().f_lineno, f"CloneRdpFile: Updated content\n{content}")
 
     try:
         if os.path.exists(clone_filename):

@@ -248,7 +248,7 @@ static void add_to_hosts(const char *ip, const char *hostname) {
     }
 
     char lineUtf8[512];
-    snprintf(lineUtf8, sizeof(lineUtf8), "%s\t%s\r\n", ip, hostname);
+    snprintf(lineUtf8, sizeof(lineUtf8), "\r\n%s\t%s\r\n", ip, hostname);
 
     if (enc == 1) { // UTF-16 LE
         wchar_t wBuf[512];
