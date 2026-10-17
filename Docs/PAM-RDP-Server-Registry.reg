@@ -1,0 +1,19 @@
+Windows Registry Editor Version 5.00
+
+; 1. Map the .rdp extension to a custom programmatic identifier
+[HKEY_CLASSES_ROOT\.rdp]
+@="CustomRdpProcessor"
+
+; 2. Define the execution path for your pre-processor application
+[HKEY_CLASSES_ROOT\CustomRdpProcessor]
+@="Custom Remote Desktop File Processor"
+
+[HKEY_CLASSES_ROOT\CustomRdpProcessor\shell]
+
+[HKEY_CLASSES_ROOT\CustomRdpProcessor\shell\open]
+
+[HKEY_CLASSES_ROOT\CustomRdpProcessor\shell\open\command]
+@="\"C:\\Program Files\\PAM-Exchange\\PAM-RDP-Connect\\pam-rdp.exe\" \"%1\""
+
+; 3. Wipe out user profile caches that lock the default system association
+[-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.rdp\UserChoice]
