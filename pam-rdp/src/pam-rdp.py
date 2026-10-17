@@ -34,6 +34,30 @@ import configparser
 import ctypes
 import getpass
 
+
+class CaseInsensitiveDict(dict):
+    def __setitem__(self, key, value):
+        super().__setitem__(key.lower() if isinstance(key, str) else key, value)
+
+    def __getitem__(self, key):
+        return super().__getitem__(key.lower() if isinstance(key, str) else key)
+
+    def __contains__(self, key):
+        return super().__contains__(key.lower() if isinstance(key, str) else key)
+
+    def get(self, key, default=None):
+        return super().get(key.lower() if isinstance(key, str) else key, default)
+
+    def __delitem__(self, key):
+        super().__delitem__(key.lower() if isinstance(key, str) else key)
+
+
+class CaseInsensitiveConfigParser(configparser.ConfigParser):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sections = CaseInsensitiveDict()
+        self._proxies = CaseInsensitiveDict()
+
 try:
     import msvcrt
     import win32file
@@ -374,8 +398,7 @@ def read_properties(filename, p_type=0, settings=None):
 
     settings.PropertyFilename = filename
 
-    config = configparser.ConfigParser(interpolation=None)
-    config.optionxform = str
+    config = CaseInsensitiveConfigParser(interpolation=None)
     if os.path.exists(filename):
         try:
             config.read(filename, encoding="utf-8-sig")
@@ -428,7 +451,10 @@ def read_properties(filename, p_type=0, settings=None):
 
         x = config.get("main", "screenMode", fallback=def_not_set)
         settings.ScreenModeDefined = (x != def_not_set)
-        if not re.search(r"(Window|Fullscreen|Maximize)", x, re.I):
+        m = re.search(r"(Window|Fullscreen|Maximize)", x, re.I)
+        if m:
+            x = m.group(1).capitalize()
+        else:
             x = "Fullscreen"
         settings.ScreenMode = x
 
@@ -492,7 +518,10 @@ def read_properties(filename, p_type=0, settings=None):
 
     if p_type == PROPERTY_TYPE_SYSTEM:
         x = config.get("main", "PAMtype", fallback=PAM_TYPE_BEYONDTRUST)
-        if not re.search(rf"({PAM_TYPE_BEYONDTRUST}|{PAM_TYPE_SYMANTEC}|{PAM_TYPE_SENHASEGURA}|{PAM_TYPE_CYBERARK})", x, re.I):
+        m = re.search(rf"({PAM_TYPE_BEYONDTRUST}|{PAM_TYPE_SYMANTEC}|{PAM_TYPE_SENHASEGURA}|{PAM_TYPE_CYBERARK})", x, re.I)
+        if m:
+            x = m.group(1)
+        else:
             x = PAM_TYPE_BEYONDTRUST
         settings.PamType = x
         log_info(sys._getframe().f_lineno, f"ReadProperties: PamType= '{settings.PamType}' (final)")
@@ -530,9 +559,9 @@ def read_properties(filename, p_type=0, settings=None):
             hostname = config.get(sec, "hostname", fallback="ERROR")
             if "ERROR" not in (ip, dns, hostname):
                 pam_info.extend([ip, dns, hostname])
-                log_debug(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, ip= {ip}, dns= {dns}, hostname= {hostname}")
+                log_debug(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
             else:
-                log_error(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, ip= {ip}, dns= {dns}, hostname= {hostname}")
+                log_error(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
 
         settings.PamInfo = pam_info
 
@@ -563,7 +592,8 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
         log_error(sys._getframe().f_lineno, f"CloneRdpFile: {ErrorMessage}, error={e}")
         return -1, ""
 
-    log_trace(sys._getframe().f_lineno, f"CloneRdpFile: Original content\n{content}")
+    content = content.replace("\r\n", "\n").replace("\n\n", "\n") + "\n"
+    
 
     if gSettings.UseFontSmoothingDefined:
         f_val = "1" if gSettings.UseFontSmoothing else "0"
@@ -669,6 +699,8 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
             content += f"username:s:{username}\n"
 
     content = content.replace("\r\n", "\n").replace("\n\n", "\n") + "\n"
+
+    log_trace(sys._getframe().f_lineno, f"CloneRdpFile: Updated content\n{content}")
 
     try:
         if os.path.exists(clone_filename):
