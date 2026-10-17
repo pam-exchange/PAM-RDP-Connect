@@ -77,6 +77,11 @@ except ImportError:
     win32api = None
     pywintypes = None
 
+try:
+    import winreg
+except ImportError:
+    winreg = None
+
 def get_app_version():
     try:
         script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -348,6 +353,57 @@ def update_hosts_file(cmd, ip, hostname):
     msg = f"{cmd} {ip} {hostname}"
     log_debug(sys._getframe().f_lineno, f"UpdateHostsFile: msg= '{msg}'")
     return pipe_message(msg)
+
+
+def update_registry_accept_security_messages(server_name, ip=""):
+    global gSettings
+    if not gSettings.AcceptSecurityMessages:
+        return
+
+    if not winreg:
+        log_warning(sys._getframe().f_lineno, "update_registry_accept_security_messages: winreg module not available")
+        return
+
+    targets = []
+    if server_name:
+        s_clean = server_name.split(":")[0].strip()
+        if s_clean and s_clean not in targets:
+            targets.append(s_clean)
+
+    if ip:
+        ip_clean = ip.split(":")[0].strip()
+        if ip_clean and ip_clean not in targets:
+            targets.append(ip_clean)
+
+    if not targets:
+        return
+
+    for target in targets:
+        # 1. Certificate Trust / Server Exceptions:
+        # HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\Servers\<ServerName>
+        server_key_path = rf"Software\Microsoft\Terminal Server Client\Servers\{target}"
+        try:
+            key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, server_key_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE)
+            try:
+                winreg.QueryValueEx(key, "CertHash")
+                log_debug(sys._getframe().f_lineno, f"update_registry_accept_security_messages: CertHash already exists for '{target}'")
+            except FileNotFoundError:
+                winreg.SetValueEx(key, "CertHash", 0, winreg.REG_BINARY, b"\x00" * 32)
+                log_info(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Created CertHash for '{target}'")
+            winreg.CloseKey(key)
+        except Exception as e:
+            log_error(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Failed to update Servers key for '{target}': {e}")
+
+        # 2. Local Device Redirection Exceptions:
+        # HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\LocalDevices
+        local_devices_path = r"Software\Microsoft\Terminal Server Client\LocalDevices"
+        try:
+            key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, local_devices_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE)
+            winreg.SetValueEx(key, target, 0, winreg.REG_DWORD, 1)
+            winreg.CloseKey(key)
+            log_info(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Set LocalDevices exception for '{target}'")
+        except Exception as e:
+            log_error(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Failed to update LocalDevices key for '{target}': {e}")
 
 
 def get_long_path_name(path):
@@ -779,6 +835,28 @@ def regular(rdp_filename):
     global gSettings, ErrorMessage
     log_debug(sys._getframe().f_lineno, f"Regular: RDP filename='{rdp_filename}'")
 
+    if gSettings.AcceptSecurityMessages and os.path.exists(rdp_filename):
+        try:
+            with open(rdp_filename, "rb") as f:
+                raw = f.read()
+            content = ""
+            if raw.startswith(b"\xff\xfe"):
+                content = raw.decode("utf-16-le", errors="replace")
+            elif raw.startswith(b"\xef\xbb\xbf"):
+                content = raw.decode("utf-8-sig", errors="replace")
+            else:
+                try:
+                    content = raw.decode("utf-8")
+                except UnicodeDecodeError:
+                    content = raw.decode("mbcs", errors="replace")
+
+            m = re.search(r"full address:s:(.*)", content, re.I)
+            if m:
+                srv = m.group(1).strip()
+                update_registry_accept_security_messages(srv)
+        except Exception as e:
+            log_debug(sys._getframe().f_lineno, f"Regular: Could not parse full address for registry update: {e}")
+
     command_line = f'"{gSettings.Program}" "{rdp_filename}"'
     log_debug(sys._getframe().f_lineno, f"Regular: commandLine= '{command_line}'")
 
@@ -833,6 +911,9 @@ def beyond_trust(rdp_filename):
                 log_warning(sys._getframe().f_lineno, "No update to hosts file")
 
             if rc >= 0:
+                if gSettings.AcceptSecurityMessages:
+                    update_registry_accept_security_messages(server_name, ip)
+
                 rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
                 if rc < 0:
                     log_error(sys._getframe().f_lineno, f"BeyondTrust: StartProgram - {ErrorMessage}")
@@ -892,6 +973,9 @@ def symantec1(ip, port, server_name):
             log_warning(sys._getframe().f_lineno, "No update to hosts file")
 
         if rc >= 0:
+            if gSettings.AcceptSecurityMessages:
+                update_registry_accept_security_messages(server_name, ip)
+
             rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
             if rc < 0:
                 log_error(sys._getframe().f_lineno, f"Symantec1: StartProgram - {ErrorMessage}")
@@ -945,6 +1029,9 @@ def symantec2(rdp_filename):
         if rc < 0:
             log_error(sys._getframe().f_lineno, f"Symantec2: CloneRdpFile - {ErrorMessage}")
         else:
+            if gSettings.AcceptSecurityMessages:
+                update_registry_accept_security_messages(server_name, ip)
+
             log_debug(sys._getframe().f_lineno, "No update to hosts file required for Symantec2")
             rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
             if rc < 0:
@@ -1005,6 +1092,9 @@ def senhasegura(local_username, remote_username, port, server_name):
                 log_warning(sys._getframe().f_lineno, "No update to hosts file")
 
             if rc >= 0:
+                if gSettings.AcceptSecurityMessages:
+                    update_registry_accept_security_messages(server_name, ip)
+
                 rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
                 if rc < 0:
                     log_error(sys._getframe().f_lineno, f"Senhasegura: StartProgram - {ErrorMessage}")
@@ -1069,6 +1159,9 @@ def cyber_ark(rdp_filename):
                 log_warning(sys._getframe().f_lineno, "No update to hosts file")
 
             if rc >= 0:
+                if gSettings.AcceptSecurityMessages:
+                    update_registry_accept_security_messages(server_name, ip)
+
                 rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
                 if rc < 0:
                     log_error(sys._getframe().f_lineno, f"CyberArk: StartProgram - {ErrorMessage}")

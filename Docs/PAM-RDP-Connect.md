@@ -135,6 +135,10 @@ This setting will control if downloaded `.rdp` files are removed after they are 
 
 When connecting to a remote server through PAM, the RDP connection from the user’s desktop is established to the PAM server. The certificate on the remote server does not match the hostname used for the connection and a security warning is shown. This setting will control if such a hostname mismatch in the certificates are silently accepted or if they are shown to the user.
 
+When `AcceptSecurityMessages=true`, **PAM RDP Connect** automatically accepts security messages and configures the Windows Registry under two primary locations for the target server name or IP address:
+* **Certificate Trust / Server Exceptions**: Creates `HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\Servers\<ServerName>` and ensures the `CertHash` value is present to suppress certificate verification prompts.
+* **Local Device Redirection Exceptions**: Configures the server name or IP address under `HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\LocalDevices` as a `DWORD` value (`1`) indicating authorized local resource and device-sharing exceptions.
+
 ### Session color depth (bit per pixel)
 
 This setting controls how many bits per pixel are used. Permitted values are 16, 24 and 32 (bpp).
