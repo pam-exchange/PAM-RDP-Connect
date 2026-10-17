@@ -381,25 +381,25 @@ def update_registry_accept_security_messages(server_name, ip=""):
     for target in targets:
         # 1. Certificate Trust / Server Exceptions:
         # HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\Servers\<ServerName>
-        server_key_path = rf"Software\Microsoft\Terminal Server Client\Servers\{target}"
-        try:
-            key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, server_key_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE)
-            try:
-                winreg.QueryValueEx(key, "CertHash")
-                log_debug(sys._getframe().f_lineno, f"update_registry_accept_security_messages: CertHash already exists for '{target}'")
-            except FileNotFoundError:
-                winreg.SetValueEx(key, "CertHash", 0, winreg.REG_BINARY, b"\x00" * 32)
-                log_info(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Created CertHash for '{target}'")
-            winreg.CloseKey(key)
-        except Exception as e:
-            log_error(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Failed to update Servers key for '{target}': {e}")
+        #server_key_path = rf"Software\Microsoft\Terminal Server Client\Servers\{target}"
+        #try:
+        #    key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, server_key_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE)
+        #    try:
+        #        winreg.QueryValueEx(key, "CertHash")
+        #        log_debug(sys._getframe().f_lineno, f"update_registry_accept_security_messages: CertHash already exists for '{target}'")
+        #    except FileNotFoundError:
+        #        winreg.SetValueEx(key, "CertHash", 0, winreg.REG_BINARY, b"\x00" * 32)
+        #        log_info(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Created CertHash for '{target}'")
+        #    winreg.CloseKey(key)
+        #except Exception as e:
+        #    log_error(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Failed to update Servers key for '{target}': {e}")
 
         # 2. Local Device Redirection Exceptions:
         # HKEY_CURRENT_USER\Software\Microsoft\Terminal Server Client\LocalDevices
         local_devices_path = r"Software\Microsoft\Terminal Server Client\LocalDevices"
         try:
             key = winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, local_devices_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_QUERY_VALUE)
-            winreg.SetValueEx(key, target, 0, winreg.REG_DWORD, 1)
+            winreg.SetValueEx(key, target, 0, winreg.REG_DWORD, 5)
             winreg.CloseKey(key)
             log_info(sys._getframe().f_lineno, f"update_registry_accept_security_messages: Set LocalDevices exception for '{target}'")
         except Exception as e:
@@ -420,15 +420,15 @@ def get_long_path_name(path):
 
 def delete_file(filename):
     global ErrorMessage
-    log_debug(sys._getframe().f_lineno, f"deleteFile: Deleting '{filename}'")
+    log_debug(sys._getframe().f_lineno, f"delete_file: Deleting '{filename}'")
     try:
         if os.path.exists(filename):
             os.remove(filename)
-            log_info(sys._getframe().f_lineno, f"deleteFile: Deleted file '{filename}'")
+            log_info(sys._getframe().f_lineno, f"delete_file: Deleted file '{filename}'")
     except Exception as e:
         ErrorMessage = f"Cannot delete file '{filename}'"
-        log_error(sys._getframe().f_lineno, f"deleteFile: {ErrorMessage}")
-        log_debug(sys._getframe().f_lineno, f"deleteFile: {e}")
+        log_error(sys._getframe().f_lineno, f"delete_file: {ErrorMessage}")
+        log_debug(sys._getframe().f_lineno, f"delete_file: {e}")
 
 
 def get_clone_filename(server_name):
@@ -436,7 +436,7 @@ def get_clone_filename(server_name):
     clone_filepath = get_long_path_name(clone_filepath)
     ts = time.strftime("%Y%m%d%H%M%S")
     clone_filename = os.path.join(clone_filepath, f"PAM-RDP-{server_name}-{ts}.rdp")
-    log_debug(sys._getframe().f_lineno, f"getCloneFilename: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
+    log_debug(sys._getframe().f_lineno, f"get_clone_filename: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
     return clone_filename
 
 
@@ -447,10 +447,10 @@ def read_properties(filename, p_type=0, settings=None):
     if p_type == 0:
         p_type = PROPERTY_TYPE_USER
 
-    log_debug(sys._getframe().f_lineno, f"readProperties: pType= {p_type}, filename= {filename}")
+    log_debug(sys._getframe().f_lineno, f"read_properties: pType= {p_type}, filename= {filename}")
 
     if not os.path.exists(filename):
-        log_always(sys._getframe().f_lineno, f"readProperties: file not found '{filename}' - use defaults")
+        log_always(sys._getframe().f_lineno, f"read_properties: file not found '{filename}' - use defaults")
 
     settings.PropertyFilename = filename
 
@@ -478,12 +478,12 @@ def read_properties(filename, p_type=0, settings=None):
         settings.LogLevel = level_map.get(log_level_str, LOG_DEBUG)
         global gLogLevel
         gLogLevel = settings.LogLevel
-        log_always(sys._getframe().f_lineno, f"ReadProperties: LogLevel= '{settings.LogLevel}'")
+        log_always(sys._getframe().f_lineno, f"read_properties: LogLevel= '{settings.LogLevel}'")
 
         x = config.get("main", "cleanup", fallback=def_not_set)
         settings.CleanupDefined = (x != def_not_set)
         settings.Cleanup = ("false" not in x.lower())
-        log_info(sys._getframe().f_lineno, f"ReadProperties: cleanup = '{settings.Cleanup}' (final)")
+        log_info(sys._getframe().f_lineno, f"read_properties: cleanup = '{settings.Cleanup}' (final)")
 
         x = config.get("main", "ConnectTimeout", fallback="60")
         try:
@@ -493,7 +493,7 @@ def read_properties(filename, p_type=0, settings=None):
         except ValueError:
             val = 60
         settings.ConnectTimeout = val
-        log_info(sys._getframe().f_lineno, f"ReadProperties: ConnectTimeout= '{settings.ConnectTimeout}' (final)")
+        log_info(sys._getframe().f_lineno, f"read_properties: ConnectTimeout= '{settings.ConnectTimeout}' (final)")
 
         x = config.get("main", "promptTimeout", fallback="15")
         try:
@@ -503,7 +503,7 @@ def read_properties(filename, p_type=0, settings=None):
         except ValueError:
             val = 15
         settings.PromptTimeout = val
-        log_info(sys._getframe().f_lineno, f"ReadProperties: PromptTimeout= '{settings.PromptTimeout}' (final)")
+        log_info(sys._getframe().f_lineno, f"read_properties: PromptTimeout= '{settings.PromptTimeout}' (final)")
 
         x = config.get("main", "screenMode", fallback=def_not_set)
         settings.ScreenModeDefined = (x != def_not_set)
@@ -540,7 +540,7 @@ def read_properties(filename, p_type=0, settings=None):
 
         settings.WindowWidth = loc_width
         settings.WindowHeight = loc_height
-        log_info(sys._getframe().f_lineno, f"ReadProperties: ScreenMode= {settings.ScreenMode}, WindowWidth= {settings.WindowWidth}, WindowHeight={settings.WindowHeight} (final)")
+        log_info(sys._getframe().f_lineno, f"read_properties: ScreenMode= {settings.ScreenMode}, WindowWidth= {settings.WindowWidth}, WindowHeight={settings.WindowHeight} (final)")
 
         x = config.get("main", "UseFontSmoothing", fallback=def_not_set)
         settings.UseFontSmoothingDefined = (x != def_not_set)
@@ -580,7 +580,7 @@ def read_properties(filename, p_type=0, settings=None):
         else:
             x = PAM_TYPE_BEYONDTRUST
         settings.PamType = x
-        log_info(sys._getframe().f_lineno, f"ReadProperties: PamType= '{settings.PamType}' (final)")
+        log_info(sys._getframe().f_lineno, f"read_properties: PamType= '{settings.PamType}' (final)")
 
         x = config.get("main", "heartbeat", fallback="true")
         settings.Heartbeat = ("true" in x.lower())
@@ -615,9 +615,9 @@ def read_properties(filename, p_type=0, settings=None):
             hostname = config.get(sec, "hostname", fallback="ERROR")
             if "ERROR" not in (ip, dns, hostname):
                 pam_info.extend([ip, dns, hostname])
-                log_debug(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
+                log_debug(sys._getframe().f_lineno, f"read_properties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
             else:
-                log_error(sys._getframe().f_lineno, f"ReadProperties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
+                log_error(sys._getframe().f_lineno, f"read_properties: server - index= {idx}, sec= [{sec}], ip= {ip}, dns= {dns}, hostname= {hostname}")
 
         settings.PamInfo = pam_info
 
@@ -628,7 +628,7 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
     global gSettings, ErrorMessage
     rc = 1
 
-    log_debug(sys._getframe().f_lineno, f"CloneRdpFile: pType= {p_type}, rdpFilename= '{rdp_filename}', cloneFilename= '{clone_filename}', serverName= '{server_name}'")
+    log_debug(sys._getframe().f_lineno, f"clone_rdp_file: pType= {p_type}, rdpFilename= '{rdp_filename}', cloneFilename= '{clone_filename}', serverName= '{server_name}'")
 
     content = ""
     try:
@@ -645,7 +645,7 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
                 content = raw.decode("mbcs", errors="replace")
     except Exception as e:
         ErrorMessage = f"Cannot read file '{rdp_filename}'"
-        log_error(sys._getframe().f_lineno, f"CloneRdpFile: {ErrorMessage}, error={e}")
+        log_error(sys._getframe().f_lineno, f"clone_rdp_file: {ErrorMessage}, error={e}")
         return -1, ""
 
     content = content.replace("\r\n", "\n").replace("\n\n", "\n") + "\n"
@@ -724,22 +724,22 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
                 match_pat = re.escape(elm)
                 if re.search(rf"(full address:s):{match_pat}", content):
                     content = re.sub(rf"(full address:s):{match_pat}", rf"\1:{server_name}", content)
-                    log_debug(sys._getframe().f_lineno, f"CloneRdpFile: Updated 'full address' to '{server_name}'")
+                    log_debug(sys._getframe().f_lineno, f"clone_rdp_file: Updated 'full address' to '{server_name}'")
                     idx = i // 3
                     break
 
             if idx == -1:
                 ErrorMessage = f"PAM server entry not found in '{rdp_filename}'"
-                log_warning(sys._getframe().f_lineno, f"CloneRdpFile: {ErrorMessage}")
+                log_warning(sys._getframe().f_lineno, f"clone_rdp_file: {ErrorMessage}")
                 rc = 2
             else:
                 ret_ip = gSettings.PamInfo[3 * idx]
-                log_debug(sys._getframe().f_lineno, f"CloneRdpFile: ip= '{ret_ip}'")
+                log_debug(sys._getframe().f_lineno, f"clone_rdp_file: ip= '{ret_ip}'")
 
         elif p_type in (PAM_TYPE_SENHASEGURA, PAM_TYPE_CYBERARK):
             if gSettings.PamInfo:
                 ret_ip = gSettings.PamInfo[0]
-            log_debug(sys._getframe().f_lineno, f"CloneRdpFile: ip= '{ret_ip}'")
+            log_debug(sys._getframe().f_lineno, f"clone_rdp_file: ip= '{ret_ip}'")
 
             if "full address" in content:
                 content = re.sub(r"(full address:s):.*", rf"\1:{server_name}", content)
@@ -756,7 +756,7 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
 
     content = content.replace("\r\n", "\n").replace("\n\n", "\n") + "\n"
 
-    log_trace(sys._getframe().f_lineno, f"CloneRdpFile: Updated content\n{content}")
+    log_trace(sys._getframe().f_lineno, f"clone_rdp_file: Updated content\n{content}")
 
     try:
         if os.path.exists(clone_filename):
@@ -765,26 +765,26 @@ def clone_rdp_file(p_type, rdp_filename, clone_filename, server_name="", ip="", 
             f.write(content.encode("utf-8"))
     except Exception as e:
         ErrorMessage = f"Cannot create RDP file '{clone_filename}'"
-        log_error(sys._getframe().f_lineno, f"CloneRdpFile: {ErrorMessage}, error= {e}")
+        log_error(sys._getframe().f_lineno, f"clone_rdp_file: {ErrorMessage}, error= {e}")
         rc = -3
 
-    log_debug(sys._getframe().f_lineno, f"CloneRdpFile: finished, rc= {rc}")
+    log_debug(sys._getframe().f_lineno, f"clone_rdp_file: finished, rc= {rc}")
     return rc, ret_ip
 
 
 def start_program(server_name, command, title, timeout):
     global ErrorMessage
-    log_debug(sys._getframe().f_lineno, f"StartProgram: serverName= '{server_name}', command= '{command}', title= '{title}', timeout= {timeout}")
+    log_debug(sys._getframe().f_lineno, f"start_program: serverName= '{server_name}', command= '{command}', title= '{title}', timeout= {timeout}")
 
     try:
         proc = subprocess.Popen(command)
         pid = proc.pid
     except Exception as e:
         ErrorMessage = "Program is not found or cannot be started"
-        log_error(sys._getframe().f_lineno, f"StartProgram: {ErrorMessage}, lastError= {e}")
+        log_error(sys._getframe().f_lineno, f"start_program: {ErrorMessage}, lastError= {e}")
         return -1
 
-    log_debug(sys._getframe().f_lineno, f"StartProgram: Run pid= {pid}")
+    log_debug(sys._getframe().f_lineno, f"start_program: Run pid= {pid}")
 
     if win32gui and win32process:
         start_time = time.time()
@@ -812,28 +812,28 @@ def start_program(server_name, command, title, timeout):
             time.sleep(0.5)
 
         if not found_hwnd:
-            log_debug(sys._getframe().f_lineno, f"StartProgram: Window not found in time for pid= {pid}")
+            log_debug(sys._getframe().f_lineno, f"start_program: Window not found in time for pid= {pid}")
         else:
             try:
                 win32gui.SetWindowText(found_hwnd, server_name)
-                log_debug(sys._getframe().f_lineno, f"StartProgram: Changed window title to '{server_name}'")
+                log_debug(sys._getframe().f_lineno, f"start_program: Changed window title to '{server_name}'")
             except Exception as e:
-                log_error(sys._getframe().f_lineno, f"StartProgram: Failed to set window title: {e}")
+                log_error(sys._getframe().f_lineno, f"start_program: Failed to set window title: {e}")
 
             if gSettings.ScreenMode == "Maximize":
                 try:
                     win32gui.ShowWindow(found_hwnd, win32con.SW_MAXIMIZE)
-                    log_debug(sys._getframe().f_lineno, "StartProgram: Maximize window")
+                    log_debug(sys._getframe().f_lineno, "start_program: Maximize window")
                 except Exception:
                     pass
 
-    log_debug(sys._getframe().f_lineno, "StartProgram: Program started")
+    log_debug(sys._getframe().f_lineno, "start_program: Program started")
     return pid
 
 
 def regular(rdp_filename):
     global gSettings, ErrorMessage
-    log_debug(sys._getframe().f_lineno, f"Regular: RDP filename='{rdp_filename}'")
+    log_debug(sys._getframe().f_lineno, f"regular: RDP filename='{rdp_filename}'")
 
     if gSettings.AcceptSecurityMessages and os.path.exists(rdp_filename):
         try:
@@ -855,24 +855,24 @@ def regular(rdp_filename):
                 srv = m.group(1).strip()
                 update_registry_accept_security_messages(srv)
         except Exception as e:
-            log_debug(sys._getframe().f_lineno, f"Regular: Could not parse full address for registry update: {e}")
+            log_debug(sys._getframe().f_lineno, f"regular: Could not parse full address for registry update: {e}")
 
     command_line = f'"{gSettings.Program}" "{rdp_filename}"'
-    log_debug(sys._getframe().f_lineno, f"Regular: commandLine= '{command_line}'")
+    log_debug(sys._getframe().f_lineno, f"regular: commandLine= '{command_line}'")
 
     try:
         proc = subprocess.Popen(command_line)
-        log_debug(sys._getframe().f_lineno, f"Regular: Run pid= {proc.pid}")
+        log_debug(sys._getframe().f_lineno, f"regular: Run pid= {proc.pid}")
     except Exception as e:
         ErrorMessage = "Program is not found or cannot be started"
-        log_error(sys._getframe().f_lineno, f"Regular: {ErrorMessage}, error= {e}")
+        log_error(sys._getframe().f_lineno, f"regular: {ErrorMessage}, error= {e}")
         return -1
 
     time.sleep(2)
     return 0
 
 
-def beyond_trust(rdp_filename):
+def beyondtrust(rdp_filename):
     global gSettings, gLockTimeout, ErrorMessage, gFilenameBase, PAM_TYPE_BEYONDTRUST
 
     m = re.search(r"(.*?)-[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$", gFilenameBase, re.I)
@@ -880,11 +880,11 @@ def beyond_trust(rdp_filename):
         server_name = m.group(1).replace(" ", "_")
     else:
         ErrorMessage = f"RDP filename '{rdp_filename}' has incorrect format"
-        log_error(sys._getframe().f_lineno, f"BeyondTrust: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"beyondtrust: {ErrorMessage}")
         return -1
 
     clone_filename = get_clone_filename(server_name)
-    log_debug(sys._getframe().f_lineno, f"BeyondTrust: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
+    log_debug(sys._getframe().f_lineno, f"beyondtrust: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
 
     command_line = f'"{gSettings.Program}" "{clone_filename}"'
     if gSettings.ScreenMode == "Fullscreen":
@@ -892,23 +892,23 @@ def beyond_trust(rdp_filename):
     else:
         command_line += f" /w:{gSettings.WindowWidth} /h:{gSettings.WindowHeight}"
 
-    log_debug(sys._getframe().f_lineno, f"BeyondTrust: commandLine= '{command_line}'")
+    log_debug(sys._getframe().f_lineno, f"beyondtrust: commandLine= '{command_line}'")
 
     if semaphore_acquire(gLockTimeout):
         rc, ip = clone_rdp_file(PAM_TYPE_BEYONDTRUST, rdp_filename, clone_filename, server_name)
-        log_debug(sys._getframe().f_lineno, f"BeyondTrust: rdpFilename= {rdp_filename}, cloneFilename= {clone_filename}, serverName= {server_name}, ip= {ip}")
+        log_debug(sys._getframe().f_lineno, f"beyondtrust: rdpFilename= {rdp_filename}, cloneFilename= {clone_filename}, serverName= {server_name}, ip= {ip}")
 
         update_hosts = (rc == 1)
 
         if rc < 0:
-            log_error(sys._getframe().f_lineno, f"BeyondTrust: CloneRdpFile - {ErrorMessage}")
+            log_error(sys._getframe().f_lineno, f"beyondtrust: CloneRdpFile - {ErrorMessage}")
         else:
             if update_hosts:
                 rc = update_hosts_file("add", ip, server_name)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"BeyondTrust: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
+                    log_error(sys._getframe().f_lineno, f"beyondtrust: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
             else:
-                log_warning(sys._getframe().f_lineno, "No update to hosts file")
+                log_warning(sys._getframe().f_lineno, "beyondtrust: No update to hosts file")
 
             if rc >= 0:
                 if gSettings.AcceptSecurityMessages:
@@ -916,23 +916,23 @@ def beyond_trust(rdp_filename):
 
                 rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"BeyondTrust: StartProgram - {ErrorMessage}")
+                    log_error(sys._getframe().f_lineno, f"beyondtrust: StartProgram - {ErrorMessage}")
                 else:
-                    log_info(sys._getframe().f_lineno, f"BeyondTrust: mstsc session started to '{server_name}'")
+                    log_info(sys._getframe().f_lineno, f"beyondtrust: mstsc session started to '{server_name}'")
 
                 if update_hosts:
                     rc = update_hosts_file("remove", ip, server_name)
                     if rc < 0:
-                        log_error(sys._getframe().f_lineno, f"BeyondTrust: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
+                        log_error(sys._getframe().f_lineno, f"beyondtrust: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
 
         semaphore_release()
 
         if gSettings.Cleanup:
-            log_debug(sys._getframe().f_lineno, f"BeyondTrust: Deleting '{clone_filename}'")
+            log_debug(sys._getframe().f_lineno, f"beyondtrust: Deleting '{clone_filename}'")
             delete_file(clone_filename)
     else:
         ErrorMessage = "Cannot acquire access to critical files in time."
-        log_error(sys._getframe().f_lineno, f"BeyondTrust: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"beyondtrust: {ErrorMessage}")
         rc = -1
 
     return rc
@@ -950,7 +950,7 @@ def symantec1(ip, port, server_name):
     else:
         command_line += f" /w:{gSettings.WindowWidth} /h:{gSettings.WindowHeight}"
 
-    log_debug(sys._getframe().f_lineno, f"Symantec1: commandLine= '{command_line}'")
+    log_debug(sys._getframe().f_lineno, f"symantec1: commandLine= '{command_line}'")
 
     if semaphore_acquire(gLockTimeout):
         docs_dir = os.path.join(os.path.expanduser("~"), "Documents")
@@ -963,14 +963,14 @@ def symantec1(ip, port, server_name):
             rc, _ = clone_rdp_file(PAM_TYPE_SYMANTEC, default_rdp_filename, default_rdp_filename)
             update_hosts = (rc == 1)
             if rc < 0:
-                log_error(sys._getframe().f_lineno, f"Symantec1: CloneRdpFile - {ErrorMessage}")
+                log_error(sys._getframe().f_lineno, f"symantec1: CloneRdpFile - {ErrorMessage}")
 
         if update_hosts:
             rc = update_hosts_file("add", ip, server_name)
             if rc < 0:
-                log_error(sys._getframe().f_lineno, f"Symantec1: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
+                log_error(sys._getframe().f_lineno, f"symantec1: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
         else:
-            log_warning(sys._getframe().f_lineno, "No update to hosts file")
+            log_warning(sys._getframe().f_lineno, "symantec1: No update to hosts file")
 
         if rc >= 0:
             if gSettings.AcceptSecurityMessages:
@@ -978,20 +978,20 @@ def symantec1(ip, port, server_name):
 
             rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
             if rc < 0:
-                log_error(sys._getframe().f_lineno, f"Symantec1: StartProgram - {ErrorMessage}")
+                log_error(sys._getframe().f_lineno, f"symantec1: StartProgram - {ErrorMessage}")
             else:
-                log_info(sys._getframe().f_lineno, f"Symantec1: mstsc started to {server_name}")
+                log_info(sys._getframe().f_lineno, f"symantec1: mstsc started to {server_name}")
 
             if update_hosts:
                 rc = update_hosts_file("remove", ip, server_name)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"Symantec1: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
+                    log_error(sys._getframe().f_lineno, f"symantec1: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
 
         semaphore_release()
         gSettings.Cleanup = False
     else:
         ErrorMessage = "Cannot acquire access to critical files in time."
-        log_error(sys._getframe().f_lineno, f"Symantec1: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"symantec1: {ErrorMessage}")
         rc = -1
 
     return rc
@@ -1010,10 +1010,10 @@ def symantec2(rdp_filename):
         if gSettings.MultiUser:
             server_name = f"{server_name}-{getpass.getuser()}"
         clone_filename = get_clone_filename(server_name)
-        log_debug(sys._getframe().f_lineno, f"Symantec2: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
+        log_debug(sys._getframe().f_lineno, f"symantec2: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
     else:
         ErrorMessage = f"RDP filename '{rdp_filename}' has incorrect format"
-        log_error(sys._getframe().f_lineno, f"Symantec2: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"symantec2: {ErrorMessage}")
         return -1
 
     command_line = f'"{gSettings.Program}" "{clone_filename}"'
@@ -1022,31 +1022,31 @@ def symantec2(rdp_filename):
     else:
         command_line += f" /w:{gSettings.WindowWidth} /h:{gSettings.WindowHeight}"
 
-    log_debug(sys._getframe().f_lineno, f"Symantec2: commandLine= '{command_line}'")
+    log_debug(sys._getframe().f_lineno, f"symantec2: commandLine= '{command_line}'")
 
     if semaphore_acquire(gLockTimeout):
         rc, ip = clone_rdp_file(PAM_TYPE_SYMANTEC2, rdp_filename, clone_filename, server_name)
         if rc < 0:
-            log_error(sys._getframe().f_lineno, f"Symantec2: CloneRdpFile - {ErrorMessage}")
+            log_error(sys._getframe().f_lineno, f"symantec2: CloneRdpFile - {ErrorMessage}")
         else:
             if gSettings.AcceptSecurityMessages:
                 update_registry_accept_security_messages(server_name, ip)
 
-            log_debug(sys._getframe().f_lineno, "No update to hosts file required for Symantec2")
+            log_debug(sys._getframe().f_lineno, "symantec2: No update to hosts file required for symantec2")
             rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
             if rc < 0:
-                log_error(sys._getframe().f_lineno, f"Symantec2: StartProgram - {ErrorMessage}")
+                log_error(sys._getframe().f_lineno, f"symantec2: StartProgram - {ErrorMessage}")
             else:
-                log_info(sys._getframe().f_lineno, f"Symantec2: mstsc session started to '{server_name}'")
+                log_info(sys._getframe().f_lineno, f"symantec2: mstsc session started to '{server_name}'")
 
         semaphore_release()
 
         if gSettings.Cleanup:
-            log_debug(sys._getframe().f_lineno, f"Symantec2: Deleting '{clone_filename}'")
+            log_debug(sys._getframe().f_lineno, f"symantec2: Deleting '{clone_filename}'")
             delete_file(clone_filename)
     else:
         ErrorMessage = "Cannot acquire access to critical files in time."
-        log_error(sys._getframe().f_lineno, f"Symantec2: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"symantec2: {ErrorMessage}")
         rc = -1
 
     return rc
@@ -1056,7 +1056,7 @@ def senhasegura(local_username, remote_username, port, server_name):
     global gSettings, gLockTimeout, ErrorMessage, gTemplateDefaultRdpFilename, PAM_TYPE_SENHASEGURA
 
     username = f"{local_username}[{remote_username}@{server_name}]"
-    log_debug(sys._getframe().f_lineno, f"Senhasegura: username= '{username}'")
+    log_debug(sys._getframe().f_lineno, f"senhasegura: username= '{username}'")
 
     if gSettings.MultiUser:
         server_name = f"{server_name}-{getpass.getuser()}"
@@ -1075,21 +1075,21 @@ def senhasegura(local_username, remote_username, port, server_name):
     else:
         command_line += f" /w:{gSettings.WindowWidth} /h:{gSettings.WindowHeight}"
 
-    log_debug(sys._getframe().f_lineno, f"Senhasegura: commandLine= '{command_line}'")
+    log_debug(sys._getframe().f_lineno, f"senhasegura: commandLine= '{command_line}'")
 
     if semaphore_acquire(gLockTimeout):
         rc, ip = clone_rdp_file(PAM_TYPE_SENHASEGURA, default_rdp_filename, clone_filename, server_name, "", username)
         update_hosts = (rc == 1)
 
         if rc < 0:
-            log_error(sys._getframe().f_lineno, f"Senhasegura: CloneRdpFile - {ErrorMessage}")
+            log_error(sys._getframe().f_lineno, f"senhasegura: CloneRdpFile - {ErrorMessage}")
         else:
             if update_hosts:
                 rc = update_hosts_file("add", ip, server_name)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"Senhasegura: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
+                    log_error(sys._getframe().f_lineno, f"senhasegura: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
             else:
-                log_warning(sys._getframe().f_lineno, "No update to hosts file")
+                log_warning(sys._getframe().f_lineno, "senhasegura: No update to hosts file")
 
             if rc >= 0:
                 if gSettings.AcceptSecurityMessages:
@@ -1097,30 +1097,30 @@ def senhasegura(local_username, remote_username, port, server_name):
 
                 rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"Senhasegura: StartProgram - {ErrorMessage}")
+                    log_error(sys._getframe().f_lineno, f"senhasegura: StartProgram - {ErrorMessage}")
                 else:
-                    log_info(sys._getframe().f_lineno, f"Senhasegura: mstsc session started to '{server_name}'")
+                    log_info(sys._getframe().f_lineno, f"senhasegura: mstsc session started to '{server_name}'")
 
                 if update_hosts:
                     rc = update_hosts_file("remove", ip, server_name)
                     if rc < 0:
-                        log_error(sys._getframe().f_lineno, f"Senhasegura: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
+                        log_error(sys._getframe().f_lineno, f"senhasegura: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
 
         semaphore_release()
 
         if gSettings.Cleanup:
-            log_debug(sys._getframe().f_lineno, f"Senhasegura: Deleting '{clone_filename}'")
+            log_debug(sys._getframe().f_lineno, f"senhasegura: Deleting '{clone_filename}'")
             delete_file(clone_filename)
         gSettings.Cleanup = False
     else:
         ErrorMessage = "Cannot acquire access to critical files in time."
-        log_error(sys._getframe().f_lineno, f"Senhasegura: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"senhasegura: {ErrorMessage}")
         rc = -1
 
     return rc
 
 
-def cyber_ark(rdp_filename):
+def cyberark(rdp_filename):
     global gSettings, gLockTimeout, ErrorMessage, PAM_TYPE_CYBERARK
 
     base_name = os.path.splitext(os.path.basename(rdp_filename))[0]
@@ -1130,10 +1130,10 @@ def cyber_ark(rdp_filename):
         if gSettings.MultiUser:
             server_name = f"{server_name}-{getpass.getuser()}"
         clone_filename = get_clone_filename(server_name)
-        log_debug(sys._getframe().f_lineno, f"CyberArk: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
+        log_debug(sys._getframe().f_lineno, f"cyberark: serverName= '{server_name}', cloneFilename= '{clone_filename}'")
     else:
         ErrorMessage = f"RDP filename '{rdp_filename}' has incorrect format"
-        log_error(sys._getframe().f_lineno, f"CyberArk: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"cyberark: {ErrorMessage}")
         return -1
 
     command_line = f'"{gSettings.Program}" "{clone_filename}"'
@@ -1142,21 +1142,21 @@ def cyber_ark(rdp_filename):
     else:
         command_line += f" /w:{gSettings.WindowWidth} /h:{gSettings.WindowHeight}"
 
-    log_debug(sys._getframe().f_lineno, f"CyberArk: commandLine= '{command_line}'")
+    log_debug(sys._getframe().f_lineno, f"cyberark: commandLine= '{command_line}'")
 
     if semaphore_acquire(gLockTimeout):
         rc, ip = clone_rdp_file(PAM_TYPE_CYBERARK, rdp_filename, clone_filename, server_name)
         update_hosts = (rc == 1)
 
         if rc < 0:
-            log_error(sys._getframe().f_lineno, f"CyberArk: CloneRdpFile - {ErrorMessage}")
+            log_error(sys._getframe().f_lineno, f"cyberark: CloneRdpFile - {ErrorMessage}")
         else:
             if update_hosts:
                 rc = update_hosts_file("add", ip, server_name)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"CyberArk: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
+                    log_error(sys._getframe().f_lineno, f"cyberark: UpdateHostsFile (add), rc= {rc} - '{ErrorMessage}'")
             else:
-                log_warning(sys._getframe().f_lineno, "No update to hosts file")
+                log_warning(sys._getframe().f_lineno, "cyberark: No update to hosts file")
 
             if rc >= 0:
                 if gSettings.AcceptSecurityMessages:
@@ -1164,23 +1164,23 @@ def cyber_ark(rdp_filename):
 
                 rc = start_program(server_name, command_line, "ahk_class TscShellContainerClass", gSettings.ConnectTimeout)
                 if rc < 0:
-                    log_error(sys._getframe().f_lineno, f"CyberArk: StartProgram - {ErrorMessage}")
+                    log_error(sys._getframe().f_lineno, f"cyberark: StartProgram - {ErrorMessage}")
                 else:
-                    log_info(sys._getframe().f_lineno, f"CyberArk: mstsc session started to '{server_name}'")
+                    log_info(sys._getframe().f_lineno, f"cyberark: mstsc session started to '{server_name}'")
 
                 if update_hosts:
                     rc = update_hosts_file("remove", ip, server_name)
                     if rc < 0:
-                        log_error(sys._getframe().f_lineno, f"CyberArk: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
+                        log_error(sys._getframe().f_lineno, f"cyber_ark: UpdateHostsFile (remove), rc= {rc} - '{ErrorMessage}'")
 
         semaphore_release()
 
         if gSettings.Cleanup:
-            log_debug(sys._getframe().f_lineno, f"CyberArk: Deleting '{clone_filename}'")
+            log_debug(sys._getframe().f_lineno, f"cyber_ark: Deleting '{clone_filename}'")
             delete_file(clone_filename)
     else:
         ErrorMessage = "Cannot acquire access to critical files in time."
-        log_error(sys._getframe().f_lineno, f"CyberArk: {ErrorMessage}")
+        log_error(sys._getframe().f_lineno, f"cyber_ark: {ErrorMessage}")
         rc = -1
 
     return rc
@@ -1278,7 +1278,7 @@ def main():
             end_script()
 
         log_debug(sys._getframe().f_lineno, f"main: call BeyondTrust using filename= '{gFilenameFull}'")
-        rc = beyond_trust(gFilenameFull)
+        rc = beyondtrust(gFilenameFull)
         if rc < 0:
             log_error(sys._getframe().f_lineno, f"main: BeyondTrust - ErrorMessage= '{ErrorMessage}'")
             msg_box(ErrorMessage, gProgramTitle, 0x10)
