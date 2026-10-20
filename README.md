@@ -117,7 +117,7 @@ The build process uses `Makefile` variables that can be overridden via command-l
 | :--- | :--- | :--- |
 | `CC` | `gcc` | C compiler command for `pam-rdp-service` |
 | `WINDRES` | `windres` | Windows resource compiler command for embedding executable metadata |
-| `PYTHON` | `python3` | Python interpreter executable |
+| `PYTHON` | `python` | Python interpreter executable |
 | `PYINSTALLER` | `pyinstaller` | PyInstaller executable |
 | `ISCC` | `ISCC.exe` | Inno Setup compiler command |
 | `INSTALL_DIR` | `C:\Program Files\PAM-Exchange\PAM-RDP-Connect` | Target directory for local service installation |
