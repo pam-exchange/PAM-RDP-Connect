@@ -20,13 +20,18 @@ SRC_PAM_CONFIG = pam-rdp-config/src
 SRC_PAM_SERVICE = pam-rdp-service/src
 CFG_PAM_SERVICE = pam-rdp-service/config
 
-.PHONY: all bump-version build installer zip source-zip package install uninstall clean
+.PHONY: all bump-version build-version build installer zip source-zip package install uninstall clean
 
 all: package
 
 bump-version:
 	@rm -f $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe $(DIST_DIR)/PAM-RDP-Connect-*.zip 2>/dev/null || true
 	@$(PYTHON) bump_version.py
+
+build-version:
+	@VERSION_VAL=$$(cat version 2>/dev/null | tr -d '\r\n'); \
+	rm -rf PAM-RDP-Connect-$$VERSION_VAL PAM-RDP-Connect-$$VERSION_VAL.zip PAM-RDP-Connect-source-$$VERSION_VAL.zip PAM-RDP-Connect-Source-$$VERSION_VAL.zip $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe $(DIST_DIR)/PAM-RDP-Connect-*.zip 2>/dev/null || true
+	@$(PYTHON) bump_version.py --no-increment
 
 build: bump-version $(DIST_DIR)/pam-rdp.exe $(DIST_DIR)/pam-rdp-config.exe $(DIST_DIR)/pam-rdp-service.exe copy-config copy-docs
 
