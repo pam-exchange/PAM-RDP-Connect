@@ -20,7 +20,7 @@ SRC_PAM_CONFIG = pam-rdp-config/src
 SRC_PAM_SERVICE = pam-rdp-service/src
 CFG_PAM_SERVICE = pam-rdp-service/config
 
-.PHONY: all bump-version build-version build installer zip source-zip package install uninstall clean
+.PHONY: all bump-version build-version prep-build-version build compile do-installer do-zip do-source-zip installer zip source-zip package install uninstall clean
 
 all: package
 
@@ -28,12 +28,16 @@ bump-version:
 	@rm -f $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe $(DIST_DIR)/PAM-RDP-Connect-*.zip 2>/dev/null || true
 	@$(PYTHON) bump_version.py
 
-build-version:
+prep-build-version:
 	@VERSION_VAL=$$(cat version 2>/dev/null | tr -d '\r\n'); \
 	rm -rf PAM-RDP-Connect-$$VERSION_VAL PAM-RDP-Connect-$$VERSION_VAL.zip PAM-RDP-Connect-source-$$VERSION_VAL.zip PAM-RDP-Connect-Source-$$VERSION_VAL.zip $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe $(DIST_DIR)/PAM-RDP-Connect-*.zip 2>/dev/null || true
 	@$(PYTHON) bump_version.py --no-increment
 
-build: bump-version $(DIST_DIR)/pam-rdp.exe $(DIST_DIR)/pam-rdp-config.exe $(DIST_DIR)/pam-rdp-service.exe copy-config copy-docs
+compile: $(DIST_DIR)/pam-rdp.exe $(DIST_DIR)/pam-rdp-config.exe $(DIST_DIR)/pam-rdp-service.exe copy-config copy-docs
+
+build: bump-version compile
+
+build-version: prep-build-version compile do-installer do-zip do-source-zip
 
 $(DIST_DIR)/pam-rdp.exe: $(SRC_PAM_RDP)/pam-rdp.py $(SRC_PAM_RDP)/pam-rdp-version.txt
 	@mkdir -p $(DIST_DIR) $(TMP_DIR)
@@ -74,7 +78,7 @@ copy-docs:
 	@[ -f version ] && cp -f version $(DIST_DIR)/ 2>/dev/null || true
 	@[ -f LICENSE ] && cp -f LICENSE $(DIST_DIR)/ 2>/dev/null || true
 
-installer: build
+do-installer:
 	@VERSION_VAL=$$(cat version 2>/dev/null | tr -d '\r\n'); \
 	rm -f $(DIST_DIR)/PAM-RDP-Connect-Install-*.exe 2>/dev/null || true; \
 	if command -v $(ISCC) >/dev/null 2>&1; then \
@@ -83,13 +87,17 @@ installer: build
 		echo "ISCC (Inno Setup) not found. Skipping installer generation."; \
 	fi
 
-zip: installer
+installer: build do-installer
+
+do-zip:
 	@VERSION_VAL=$$(cat version 2>/dev/null | tr -d '\r\n'); \
 	ZIP_NAME="PAM-RDP-Connect-$$VERSION_VAL.zip"; \
 	rm -f $$ZIP_NAME; \
 	(cd $(DIST_DIR) && $(ZIP) -r ../$$ZIP_NAME *)
 
-source-zip: build
+zip: installer do-zip
+
+do-source-zip:
 	@VERSION_VAL=$$(cat version 2>/dev/null | tr -d '\r\n'); \
 	SRC_ZIP_NAME="PAM-RDP-Connect-Source-$$VERSION_VAL.zip"; \
 	rm -f $$SRC_ZIP_NAME; \
@@ -106,6 +114,8 @@ source-zip: build
 	[ -f bump_version.py ] && ITEMS="$$ITEMS bump_version.py"; \
 	[ -f version ] && ITEMS="$$ITEMS version"; \
 	$(ZIP) -r $$SRC_ZIP_NAME $$ITEMS 2>/dev/null || true
+
+source-zip: build do-source-zip
 
 package: zip source-zip
 
